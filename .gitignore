@@ -1,3 +1,4 @@
 .env
+.vault_pass.txt
 .osfcli.config
 .DS_Store
