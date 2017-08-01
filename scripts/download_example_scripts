@@ -1,3 +1,0 @@
-#!/usr/bin/env bash
-mkdir example-scripts
-scp pierce@analytics.fold.it:~/fetch/*.py example-scripts/
