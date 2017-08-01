@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+mkdir example-scripts
+scp foldit:~/fetch/*.py example-scripts/
