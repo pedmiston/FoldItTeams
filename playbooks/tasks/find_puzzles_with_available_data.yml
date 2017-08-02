@@ -1,0 +1,8 @@
+---
+
+- name: Search for puzzles with all/ directory
+  shell: find ~/fetch/solution* -maxdepth 1 -name 'all'
+  register: puzzle_dirs_with_all
+
+- name: Copy the puzzle dirs to the host machine
+  local_action: copy content={{ puzzle_dirs_with_all.stdout }} dest=./data/puzzles_with_all_solutions.txt

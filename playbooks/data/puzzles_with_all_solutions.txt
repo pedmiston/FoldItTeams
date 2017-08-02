@@ -1,7 +1,6 @@
 /home/pierce/fetch/solution_2002465/all
 /home/pierce/fetch/solution_2002990/all
 /home/pierce/fetch/solution_2003832/all
-/home/pierce/fetch/solution_2003912/all
 /home/pierce/fetch/solution_2003918/all
 /home/pierce/fetch/solution_2003921/all
 /home/pierce/fetch/solution_2003928/all
@@ -13,3 +12,5 @@
 /home/pierce/fetch/solution_2003976/all
 /home/pierce/fetch/solution_2003982/all
 /home/pierce/fetch/solution_2003984/all
+/home/pierce/fetch/solution_2003990/all
+/home/pierce/fetch/solution_2003996/all

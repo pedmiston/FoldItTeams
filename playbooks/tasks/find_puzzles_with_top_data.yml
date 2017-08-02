@@ -1,0 +1,8 @@
+---
+
+- name: Search for puzzles with top/ directory
+  shell: find ~/fetch/solution* -maxdepth 1 -name 'top'
+  register: puzzle_dirs_with_top 
+
+- name: Copy the puzzle dirs to the host machine
+  local_action: copy content={{ puzzle_dirs_with_top.stdout }} dest=./data/puzzles_with_top_solutions.txt
