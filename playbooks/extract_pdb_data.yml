@@ -1,0 +1,10 @@
+---
+
+- hosts: analytics.fold.it
+  remote_user: pierce
+  vars:
+    - python: ~/venv/bin/python
+    - script: ~/foldit/scripts/parse_solution_pdb_files.py
+  tasks:
+    - name: Run parse solution pdb files
+      shell: "{{ python }} {{ script }}"
