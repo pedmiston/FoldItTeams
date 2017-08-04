@@ -25,6 +25,16 @@ ansible-playbook playbooks/find_puzzles.yml -e type=all
 ansible-playbook playbooks/find_puzzles.yml -e "{type: 'top', rank: 'bid'}"
 ```
 
+## Parsing data from file paths
+
+There is a lot of data contained in the paths to `pdb` files. The script
+"parse_solution_paths.py" extracts the data in a txt file of paths
+and outputs the results to a csv.
+
+```bash
+python scripts/parse_solution_paths.py  # outputs data/top_bid_solutions.csv
+```
+
 ## Contributing
 
 1. Install the python requirements in a virtualenv.
