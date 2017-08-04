@@ -5,6 +5,7 @@
 # to the Ansible Playbook.
 #
 #     $ ansible-playbook find_puzzles.yml -e 'type=all'
+#     $ ansible-playbook find_puzzles.yml -e '{type: "top", rank: "bid"}'
 
 - hosts: analytics.fold.it
   remote_user: pierce
