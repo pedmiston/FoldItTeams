@@ -1,4 +1,4 @@
-import parse_solution_paths
+from parse_solution_paths import read_solution_paths
 
 
 if __name__ == '__main__':

@@ -1,4 +1,6 @@
 ---
+# Extract data from pdb files.
+#     $ ansible-playbook extract_pdb_data.yml -e puzzle_id=2003893
 
 - hosts: analytics.fold.it
   remote_user: pierce
@@ -7,4 +9,9 @@
     - script: ~/foldit/scripts/parse_solution_pdb_files.py
   tasks:
     - name: Run parse solution pdb files
-      shell: "{{ python }} {{ script }}"
+      shell: "{{ python }} {{ script }} {{ puzzle_id }}"
+
+    # - name: Copy results back to host machine
+    #   fetch:
+    #     src: "~/data/parsed/{{ puzzle_id }}.csv"
+    #     dest: "../data/parsed/{{ puzzle_id }}.csv"
