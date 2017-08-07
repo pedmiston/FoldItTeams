@@ -1,0 +1,9 @@
+---
+- hosts: analytics.fold.it
+  remote_user: pierce
+  tasks:
+    - name: Get puzzle data
+      synchronize:
+        src: ~/fetch/solution_{{ puzzle_id }}/top/
+        dest: ../data/solution_{{ puzzle_id }}/
+        mode: pull

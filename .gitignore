@@ -5,3 +5,4 @@
 *.pyc
 __pycache__/
 demo-scripts/
+data/solution_*
