@@ -1,7 +1,7 @@
 ---
 
 - name: Search for puzzles with top/ directory
-  shell: "find ~/fetch/solution*/top/ -maxdepth 1 -name 'solution_{{ rank }}*.pdb'"
+  shell: "find ~/fetch/solution_{{ puzzle_id | default(*) }}/top/ -maxdepth 1 -name 'solution_{{ rank }}*.pdb'"
   register: puzzle_dirs_with_top
 
 - name: Copy the puzzle dirs to the host machine
