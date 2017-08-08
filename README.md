@@ -41,7 +41,6 @@ python scripts/parse_solution_paths.py  # outputs data/top_bid_solutions.csv
 
 ```bash
 ansible-playbook playbooks/find_puzzles.yml -e "@playbooks/vars/sketchbook_puzzles.yml"
-
 ```
 
 ## BestScores

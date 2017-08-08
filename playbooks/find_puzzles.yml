@@ -11,6 +11,9 @@
 - hosts: analytics.fold.it
   remote_user: pierce
   tasks:
+    - name: Make data dir on host
+      local_action: command 'mkdir -p {{ data_dir | default("../data") }}'
+
     - include: tasks/find_puzzles_with_available_data.yml
       when: type == 'all'
 
