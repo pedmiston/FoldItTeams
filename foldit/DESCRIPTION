@@ -1,0 +1,10 @@
+Package: foldit
+Title: FoldIt Game Data
+Version: 0.0.0.9000
+Authors@R: person("Pierce", "Edmiston", email = "pedmiston@wisc.edu", role = c("aut", "cre"))
+Description: Analyze the problem solving effectiveness of teams and individuals playing the FoldIt scientific discovery game.
+Depends: R (>= 3.4.1)
+License: MIT
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 6.0.1
