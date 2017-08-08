@@ -35,6 +35,19 @@ and outputs the results to a csv.
 python scripts/parse_solution_paths.py  # outputs data/top_bid_solutions.csv
 ```
 
+# Data
+
+## SketchbookPuzzles
+
+```bash
+ansible-playbook playbooks/find_puzzles.yml -e "@playbooks/vars/sketchbook_puzzles.yml"
+
+```
+
+## BestScores
+
+
+
 ## Contributing
 
 1. Install the python requirements in a virtualenv.

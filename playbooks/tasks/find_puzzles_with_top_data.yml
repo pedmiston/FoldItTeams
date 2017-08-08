@@ -5,4 +5,4 @@
   register: puzzle_dirs_with_top
 
 - name: Copy the puzzle dirs to the host machine
-  local_action: copy content={{ puzzle_dirs_with_top.stdout }} dest="../data/puzzle{{ puzzle_id | default('s') }}_with_top_{{ rank }}_solutions.txt"
+  local_action: copy content={{ puzzle_dirs_with_top.stdout }} dest="{{ data_dir | default('../data/') }}/{{ puzzle_id | default('puzzles') }}_with_top_{{ rank }}_solutions.txt"

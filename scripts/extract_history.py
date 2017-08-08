@@ -2,6 +2,9 @@ import collections
 import re
 
 import unipath
+import pandas
+
+from parse_solution_paths import read_solution_paths
 
 
 fields = collections.OrderedDict([
@@ -12,6 +15,41 @@ fields = collections.OrderedDict([
 ])
 
 pdl_fields = ['username', 'groupname', 'uid', 'gid', 'buildid', 'current_score', 'score_valid', 'best_score', 'action_log']
+
+def process_solution_pdb(solution_pdb, solution_dir):
+    solution = Solution(solution_pdb, solution_dir)
+    return extract_best_scores(solution),
+
+class Solution:
+    local_data_dir = None
+
+    def __init__(self, solution_pdb):
+        self.data = extract_data(solution_pdb, self.local_data_dir)
+        self.data['path'] = solution_pdb
+
+    def get_best_scores(self):
+        return self.get_row('uid', 'gid', 'timestamp', 'energy', 'path')
+
+    def get_row(self, *data_args):
+        row_data = []
+        for arg in data_args:
+            data = self.data.get(arg)
+            if data is None:
+                try:
+                    data = getattr(self, arg)
+                except AttributeError:
+                    raise NotImplementedError("don't know how to extract arg '%s'" % arg)
+            row_data.append(data)
+        return pandas.Series(row_data, index=data_args)
+
+    @property
+    def uid(self):
+        return self.data['pdl']['uid']
+
+    @property
+    def gid(self):
+        return self.data['pdl']['gid']
+
 
 def extract_data(solution_pdb, solution_dir):
     solution_pdb_handle = get_or_download(solution_pdb, solution_dir)
@@ -49,15 +87,12 @@ def extract_data(solution_pdb, solution_dir):
                     except Exception as e:
                         continue
 
-                    if field in pdl.keys():
-                        data[field] += [pdl]
-                    else:
-                        data[field] = [pdl]
+                    data[field] = pdl
 
                 # if field == 'history': ...
 
                 else:
-                    data[field] = [line.split()[2:]]
+                    data[field] = line.split()[2:][0]
 
     solution_pdb_handle.close()
     return data
@@ -79,14 +114,33 @@ if __name__ == '__main__':
     parser.add_argument('solution_pdb_paths')
     parser.add_argument('local_data_dir')
     args = parser.parse_args()
-    assert path.exists(args.solution_pdb_paths), "solution paths not found"
+    assert unipath.Path(args.solution_pdb_paths).exists(), "solution paths not found"
 
-    local_data_dir = unipath.Path(local_data_dir)
+    local_data_dir = unipath.Path(args.local_data_dir)
     if not local_data_dir.isdir():
         local_data_dir.mkdir(True)
 
-    with open(args.solution_pdb_paths, 'r') as pdb_paths:
-        for pdb_path in pdb_paths.read():
-            pdb_path = pdb_path.strip()
-            assert path.exists(pdb_path), "solution pdb file not found"
-            data = extract_data(pdb_path, local_data_dir)
+    pdb_paths = [unipath.Path(path.strip()) for path in
+                 open(args.solution_pdb_paths, 'r').readlines()]
+
+    Solution.local_data_dir = args.local_data_dir
+
+    # Concurrency here??
+
+    best_scores = []
+
+    for pdb_path in pdb_paths:
+        pdb_path = pdb_path.strip()
+        solution = Solution(pdb_path)
+        best_scores.append(solution.get_best_scores())
+
+    best_scores_data = pandas.DataFrame.from_records(best_scores)
+
+    path_data = read_solution_paths(args.solution_pdb_paths)
+
+    len_before_merge = len(best_scores_data)
+    best_scores_data = best_scores_data.merge(path_data)
+    assert len(best_scores_data) == len_before_merge
+    del best_scores_data['path']
+
+    best_scores_data.to_csv('data/solution_summary.csv', index=False)
