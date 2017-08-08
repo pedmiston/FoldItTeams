@@ -1,9 +1,14 @@
 ---
 - hosts: analytics.fold.it
   remote_user: pierce
+  vars:
+    - top_solutions_dest: "data/top_solutions"
   tasks:
-    - name: Get puzzle data
+    - name: Make data dir on host
+      local_action: file path={{ top_solutions_dest }} state=directory
+
+    - name: Get the top puzzle data for a single puzzle
       synchronize:
-        src: ~/fetch/solution_{{ puzzle_id }}/top/
-        dest: ../data/solution_{{ puzzle_id }}/
+        src: "~/fetch/solution_{{ puzzle_id }}/top/solution_{{ rank }}*.pdb"
+        dest: "{{ top_solutions_dest }}/puzzle_{{ puzzle_id }}/"
         mode: pull

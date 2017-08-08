@@ -40,7 +40,14 @@ python scripts/parse_solution_paths.py  # outputs data/top_bid_solutions.csv
 ## SketchbookPuzzles
 
 ```bash
-ansible-playbook playbooks/find_puzzles.yml -e "@playbooks/vars/sketchbook_puzzles.yml"
+# Create a txt file of all top sketchbook puzzles on the analytics server
+ansible-playbook playbooks/find_puzzles.yml -e @playbooks/vars/sketchbook.yml"
+
+# Download the pdb files from the analytics server
+ansible-playbook playbooks/download_puzzles.yml -e @playbooks/vars/sketchbook.yml
+
+# Extract the histories from the top sketchbook puzzles
+python scripts/extract_histories.py playbooks/data/sketchbook/top_pdb_files.txt playbooks/data/top_solutions/puzzle_2003996
 ```
 
 ## BestScores

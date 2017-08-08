@@ -3,6 +3,7 @@
 .osfcli.config
 .DS_Store
 *.pyc
+*.pdb
 __pycache__/
 demo-scripts/
-data/solution_*
+*.retry

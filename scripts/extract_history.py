@@ -113,6 +113,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('solution_pdb_paths')
     parser.add_argument('local_data_dir')
+    parser.add_argument('dest')
     args = parser.parse_args()
     assert unipath.Path(args.solution_pdb_paths).exists(), "solution paths not found"
 
@@ -143,4 +144,8 @@ if __name__ == '__main__':
     assert len(best_scores_data) == len_before_merge
     del best_scores_data['path']
 
-    best_scores_data.to_csv('data/solution_summary.csv', index=False)
+    dest = unipath.Path(args.dest)
+    if not dest.parent.isdir():
+        dest.parent.mkdir()
+
+    best_scores_data.to_csv(dest, index=False)
