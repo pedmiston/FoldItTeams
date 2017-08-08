@@ -47,8 +47,8 @@ ansible-playbook playbooks/find_puzzles.yml -e @playbooks/vars/sketchbook.yml"
 ansible-playbook playbooks/download_puzzles.yml -e @playbooks/vars/sketchbook.yml
 
 # Extract the histories from the top sketchbook puzzles
-python scripts/extract_histories.py playbooks/data/sketchbook/top_pdb_files.txt playbooks/data/top_solutions/puzzle_2003996
-```
+python scripts/extract_histories.py playbooks/data/sketchbook/top_sketchbook_solution_pdb_files.txt playbooks/data/top_solutions/puzzle_2003996 scripts/data/sketchbook_top.csv
+` `
 
 ## BestScores
 

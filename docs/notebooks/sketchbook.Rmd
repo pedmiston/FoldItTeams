@@ -1,0 +1,23 @@
+---
+title: Top solutions to sketchbook puzzles
+author: Pierce Edmiston
+output:
+  html_document:
+    theme: flatly
+---
+
+```{r config, include=FALSE}
+library(knitr)
+opts_chunk$set(echo=FALSE)
+sapply(list.files("../R", "*.R", full.names = TRUE), read_chunk)
+```
+
+```{r setup, include=FALSE}
+```
+
+```{r sketchbook, include=FALSE}
+```
+
+```{r energy_by_group}
+energy_by_group_plot
+```
