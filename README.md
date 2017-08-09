@@ -35,26 +35,36 @@ and outputs the results to a csv.
 python scripts/parse_solution_paths.py  # outputs data/top_bid_solutions.csv
 ```
 
+## Syncing remote git repos
+
+Run the "sync_remote.yml" playbook to sync the version of this repo on the remote machine.
+
+```bash
+ansible-playbook playbooks/sync_remote.yml
+```
+
 # Data
 
 ## SketchbookPuzzles
 
 ```bash
+cd playbooks
+
 # Create a txt file of all top sketchbook puzzles on the analytics server
-ansible-playbook playbooks/find_puzzles.yml -e @playbooks/vars/sketchbook.yml"
+ansible-playbook find_puzzles.yml -e @vars/sketchbook.yml
 
 # Download the pdb files from the analytics server
-ansible-playbook playbooks/download_puzzles.yml -e @playbooks/vars/sketchbook.yml
+ansible-playbook download_puzzles.yml -e @vars/sketchbook.yml
+
+cd ..
 
 # Extract the histories from the top sketchbook puzzles
 python scripts/extract_histories.py playbooks/data/sketchbook/top_sketchbook_solution_pdb_files.txt playbooks/data/top_solutions/puzzle_2003996 scripts/data/sketchbook_top.csv
-` `
+```
 
 ## BestScores
 
-
-
-## Contributing
+# Contributing
 
 1. Install the python requirements in a virtualenv.
 

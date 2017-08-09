@@ -1,0 +1,6 @@
+---
+- name: Update foldit git repo
+  git:
+    repo: "https://github.com/pedmiston/foldit.git"
+    dest: "{{ path_to_foldit_git_repo }}"
+    update: yes
