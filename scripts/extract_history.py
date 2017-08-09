@@ -4,7 +4,7 @@ import re
 import unipath
 import pandas
 
-from parse_solution_paths import read_solution_paths
+from scripts.parse_solution_paths import read_solution_paths
 
 
 fields = collections.OrderedDict([
@@ -24,7 +24,16 @@ class Solution:
     local_data_dir = None
 
     def __init__(self, solution_pdb):
-        self.data = extract_data(solution_pdb, self.local_data_dir)
+        solution_pdb = unipath.Path(solution_pdb)
+
+        if solution_pdb.exists():
+            local_solution_pdb = solution_pdb
+        else:
+            local_solution_pdb = unipath.Path(self.local_data_dir, solution_pdb.name)
+            if not local_solution_pdb.exists():
+                download_solution_pdb(solution_pdb, local_solution_pdb)
+
+        self.data = extract_data(local_solution_pdb)
         self.data['path'] = solution_pdb
 
     def get_best_scores(self):
@@ -54,8 +63,9 @@ class Solution:
         return self.data['pdl']['gid']
 
 
-def extract_data(solution_pdb, solution_dir):
-    solution_pdb_handle = get_or_download(solution_pdb, solution_dir)
+def extract_data(solution_pdb):
+    solution_pdb_handle = open(solution_pdb, 'r')
+
     data = {}
     last_uid = 0
     for line in solution_pdb_handle.readlines():
@@ -101,33 +111,30 @@ def extract_data(solution_pdb, solution_dir):
     return data
 
 
-def get_or_download(solution_pdb, local_data_dir):
-    remote_path = unipath.Path(solution_pdb)
-    expected_file = remote_path.name
-    local_path = unipath.Path(local_data_dir, remote_path.name)
-    if not local_path.exists():
-        raise NotImplementedError()
-
-    return open(local_path, 'r')
+def download_solution_pdb(src, dst):
+    raise NotImplementedError()
 
 
 if __name__ == '__main__':
     import argparse
     parser = argparse.ArgumentParser()
-    parser.add_argument('solution_pdb_paths')
-    parser.add_argument('local_data_dir')
-    parser.add_argument('dest')
+    parser.add_argument('paths_to_pdb_files')
     args = parser.parse_args()
-    assert unipath.Path(args.solution_pdb_paths).exists(), "solution paths not found"
 
-    local_data_dir = unipath.Path(args.local_data_dir)
+    paths_to_pdb_files = unipath.Path(args.paths_to_pdb_files)
+    if paths_to_pdb_files.isdir():
+        pdb_paths = paths_to_pdb_files.listdir('*.pdb')
+    elif paths_to_pdb_files.isfile():
+        pdb_paths = [unipath.Path(path.strip()) for path in
+                     open(args.paths_to_pdb_files).readlines()]
+    else:
+        raise AssertionError("solution paths not found")
+
+    local_data_dir = unipath.Path('data')
     if not local_data_dir.isdir():
         local_data_dir.mkdir(True)
 
-    pdb_paths = [unipath.Path(path.strip()) for path in
-                 open(args.solution_pdb_paths, 'r').readlines()]
-
-    Solution.local_data_dir = args.local_data_dir
+    Solution.local_data_dir = local_data_dir
 
     # Concurrency here??
 
