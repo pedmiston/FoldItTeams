@@ -4,7 +4,7 @@ import re
 import unipath
 import pandas
 
-from scripts.parse_solution_paths import read_solution_paths
+from parse_solution_paths import read_solution_paths
 
 
 fields = collections.OrderedDict([
@@ -16,9 +16,10 @@ fields = collections.OrderedDict([
 
 pdl_fields = ['username', 'groupname', 'uid', 'gid', 'buildid', 'current_score', 'score_valid', 'best_score', 'action_log']
 
-def process_solution_pdb(solution_pdb, solution_dir):
-    solution = Solution(solution_pdb, solution_dir)
-    return extract_best_scores(solution),
+PROJ = unipath.Path(__file__).absolute().ancestor(2)
+SCRIPTS = unipath.Path(PROJ, 'scripts')
+LOCAL_PDB_DIR = unipath.Path(PROJ, 'playbooks/data/top_solutions/puzzle_2003996')
+
 
 class Solution:
     local_data_dir = None
@@ -40,19 +41,43 @@ class Solution:
         return self.get_row('uid', 'gid', 'timestamp', 'energy', 'path')
 
     def get_total_actions(self):
-        actions = self.data['pdl']['action_log']
+        action_log = pandas.Series(self.data['pdl']['action_log'])
+        actions = (action_log.rename({'|': '|UnknownAction'})
+                             .rename(lambda x: x.strip('|')))
+        actions.index.name = 'name'
+        actions.name = 'count'
+        actions = actions.reset_index()
+
+        for id_var in ['uid', 'gid', 'path']:
+            actions[id_var] = self.get(id_var)
+
+        col_order = ['uid', 'gid', 'name', 'count', 'path']
+        return actions[col_order]
+
+    def get_solution_history(self):
+        history = pandas.Series(self.get('history').split(','), name='solution_id')
+        history.index.name = 'solution_ix'
+        history = history.reset_index()
+
+        for id_var in ['uid', 'gid', 'path']:
+            history[id_var] = self.get(id_var)
+
+        col_order = ['uid', 'gid', 'solution_ix', 'solution_id', 'path']
+        return history[col_order]
 
     def get_row(self, *data_args):
-        row_data = []
-        for arg in data_args:
-            data = self.data.get(arg)
-            if data is None:
-                try:
-                    data = getattr(self, arg)
-                except AttributeError:
-                    raise NotImplementedError("don't know how to extract arg '%s'" % arg)
-            row_data.append(data)
+        row_data = [self.get(arg) for arg in data_args]
         return pandas.Series(row_data, index=data_args)
+
+    def get(self, arg):
+        data = self.data.get(arg)
+        if data is None:
+            try:
+                data = getattr(self, arg)
+            except AttributeError:
+                raise NotImplementedError("don't know how to extract arg '%s'" % arg)
+        return data
+
 
     @property
     def uid(self):
@@ -112,53 +137,59 @@ def extract_data(solution_pdb):
 
 
 def download_solution_pdb(src, dst):
-    raise NotImplementedError()
+    raise NotImplementedError('looking for: %s\nat: %s' % (src, dst))
 
 
 if __name__ == '__main__':
     import argparse
     parser = argparse.ArgumentParser()
-    parser.add_argument('paths_to_pdb_files')
+    parser.add_argument('solution_pdb_paths')
+    parser.add_argument('dest')
     args = parser.parse_args()
 
-    paths_to_pdb_files = unipath.Path(args.paths_to_pdb_files)
-    if paths_to_pdb_files.isdir():
-        pdb_paths = paths_to_pdb_files.listdir('*.pdb')
-    elif paths_to_pdb_files.isfile():
-        pdb_paths = [unipath.Path(path.strip()) for path in
-                     open(args.paths_to_pdb_files).readlines()]
-    else:
-        raise AssertionError("solution paths not found")
+    solution_pdb_paths = unipath.Path(args.solution_pdb_paths)
+    pdb_paths = [unipath.Path(path.strip()) for path in
+                 open(args.solution_pdb_paths).readlines()]
 
-    local_data_dir = unipath.Path('data')
-    if not local_data_dir.isdir():
-        local_data_dir.mkdir(True)
+    if not LOCAL_PDB_DIR.isdir():
+        LOCAL_PDB_DIR.mkdir(True)
 
-    Solution.local_data_dir = local_data_dir
+    Solution.local_data_dir = LOCAL_PDB_DIR
 
     # Concurrency here??
 
     best_scores = []
     total_actions = []
+    solution_history = []
 
     for pdb_path in pdb_paths:
         pdb_path = pdb_path.strip()
         solution = Solution(pdb_path)
         best_scores.append(solution.get_best_scores())
         total_actions.append(solution.get_total_actions())
+        solution_history.append(solution.get_solution_history())
 
     best_scores_data = pandas.DataFrame.from_records(best_scores)
     total_actions_data = pandas.concat(total_actions)
+    solution_histories = pandas.concat(solution_history)
 
     path_data = read_solution_paths(args.solution_pdb_paths)
 
-    len_before_merge = len(best_scores_data)
-    best_scores_data = best_scores_data.merge(path_data)
-    assert len(best_scores_data) == len_before_merge
-    del best_scores_data['path']
+    def merge_path_data(frame):
+        len_before_merge = len(frame)
+        frame = frame.merge(path_data)
+        assert len(frame) == len_before_merge
+        del frame['path']
+        return frame
+
+    best_scores_data = merge_path_data(best_scores_data)
+    total_actions_data = merge_path_data(total_actions_data)
+    solution_histories = merge_path_data(total_actions_data)
 
     dest = unipath.Path(args.dest)
-    if not dest.parent.isdir():
-        dest.parent.mkdir()
+    if not dest.isdir():
+        dest.mkdir()
 
-    best_scores_data.to_csv(dest, index=False)
+    best_scores_data.to_csv(unipath.Path(dest, 'best_scores.csv'), index=False)
+    total_actions_data.to_csv(unipath.Path(dest, 'total_actions.csv'), index=False)
+    solution_histories.to_csv(unipath.Path(dest, 'solution_histories.csv'), index=False)
