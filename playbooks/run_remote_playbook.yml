@@ -6,4 +6,4 @@
   tasks:
     - include: tasks/update_foldit_git_repo.yml
     - name: Run the playbook on the foldit server
-      shell: {{ python_virtualenv_bin }}/ansible-playbook {{ path_to_foldit_git_repo }}/playbooks/{{ playbook }} -e host=analytics.fold.it -e @{{ path_to_foldit_git_repo }}/playbooks/vars/{{ include_vars | default('default.yml') }}
+      shell: "{{ python_virtualenv_bin }}/ansible-playbook {{ path_to_foldit_git_repo }}/playbooks/{{ playbook }} -e host=analytics.fold.it -e @{{ path_to_foldit_git_repo }}/playbooks/vars/{{ include_vars | default('default.yml') }}"
