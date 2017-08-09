@@ -30,6 +30,9 @@ class Solution:
     def get_best_scores(self):
         return self.get_row('uid', 'gid', 'timestamp', 'energy', 'path')
 
+    def get_total_actions(self):
+        actions = self.data['pdl']['action_log']
+
     def get_row(self, *data_args):
         row_data = []
         for arg in data_args:
@@ -129,13 +132,16 @@ if __name__ == '__main__':
     # Concurrency here??
 
     best_scores = []
+    total_actions = []
 
     for pdb_path in pdb_paths:
         pdb_path = pdb_path.strip()
         solution = Solution(pdb_path)
         best_scores.append(solution.get_best_scores())
+        total_actions.append(solution.get_total_actions())
 
     best_scores_data = pandas.DataFrame.from_records(best_scores)
+    total_actions_data = pandas.concat(total_actions)
 
     path_data = read_solution_paths(args.solution_pdb_paths)
 
