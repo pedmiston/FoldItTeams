@@ -1,0 +1,22 @@
+---
+- hosts: "{{ host }}"
+  remote_user: pierce
+  vars:
+    - top_solutions_dest: "data/top_solutions"
+  tasks:
+    - name: Make data dir on host
+      local_action: file path={{ top_solutions_dest }} state=directory
+
+    - name: Get the top puzzle data from the analytics server
+      synchronize:
+        src: "~/fetch/solution_{{ puzzle_id }}/top/solution_{{ rank }}*.pdb"
+        dest: "{{ top_solutions_dest }}/puzzle_{{ puzzle_id }}/"
+        mode: pull
+      when: host == "analytics.fold.it"
+
+    - name: Get the top puzzle data from the foldit server
+      synchronize:
+        src: "~/foldit/playbooks/{{ top_solutions_dest }}/puzzle_{{ puzzle_id }}/*.pdb"
+        dest: "{{ top_solutions_dest }}/puzzle_{{ puzzle_id }}/"
+        mode: pull
+      when: host == "foldit"

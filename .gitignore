@@ -3,4 +3,9 @@
 .osfcli.config
 .DS_Store
 *.pyc
+*.pdb
 __pycache__/
+demo-scripts/
+*.retry
+.Rproj.user
+*.html

@@ -5,11 +5,15 @@
 # to the Ansible Playbook.
 #
 #     $ ansible-playbook find_puzzles.yml -e 'type=all'
-#     $ ansible-playbook find_puzzles.yml -e '{type: "top", rank: "bid"}'
+#     $ ansible-playbook find_puzzles.yml -e '{type: "top", rank: "bid", puzzle_id: 2003996}'
+#     $ ansible-playbook find_puzzles.yml -e '@vars/sketchbook_puzzles.yml'
 
 - hosts: analytics.fold.it
   remote_user: pierce
   tasks:
+    - name: Make data dir on host
+      local_action: command mkdir -p {{ data_dir | default("data") }}
+
     - include: tasks/find_puzzles_with_available_data.yml
       when: type == 'all'
 

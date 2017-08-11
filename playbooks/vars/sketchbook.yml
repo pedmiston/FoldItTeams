@@ -1,0 +1,6 @@
+---
+type: top
+rank: bid
+puzzle_id: 2003996
+data_dir: data/sketchbook
+pdb_paths_file: "{{ data_dir }}/top_sketchbook_solution_pdb_files.txt"
