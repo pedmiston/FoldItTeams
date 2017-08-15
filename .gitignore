@@ -9,3 +9,4 @@ demo-scripts/
 *.retry
 .Rproj.user
 *.html
+bin/

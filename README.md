@@ -74,16 +74,17 @@ source ~/.venvs/foldit/bin/activate
 pip install -r requirements.txt
 ```
 
-2. Configure `osf-cli`.
-
-```bash
-osf init  # project id is "72txj"
-echo "export OSF_PASSWORD=my-osf-password" >> .env
-```
-
-3. Set up Ansible Vault for securing secrets.
+2. Set up Ansible Vault for securing secrets.
 
 ```bash
 echo "my-vault-pass" > .vault_pass.txt
 echo "export ANSIBLE_VAULT_PASSWORD_FILE=~/path/to/project/.vault_pass.txt" >> .env
+```
+
+3. Modify GOPATH for this project.
+
+```
+# contents of .env
+export GOPATH=$HOME/Research/FoldIt
+export PATH=$GOPATH/bin:$PATH
 ```
