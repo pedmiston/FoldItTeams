@@ -4,6 +4,7 @@
 .DS_Store
 *.pyc
 *.pdb
+!testdata/**/*.pdb
 __pycache__/
 demo-scripts/
 *.retry
