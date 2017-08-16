@@ -2,29 +2,27 @@
 - hosts: analytics.fold.it
   remote_user: pierce
   vars:
+    - puzzle_data_dest: data/
     # Overwrite files if they exist on src and at dest
     - overwrite: no
   tasks:
     - name: Verify that the dest directory exists
-      local_action: file path={{ top_solutions_dest }} state=directory
+      local_action: file path={{ puzzle_data_dest }} state=directory
 
-    - name: Find all available puzzles
-      shell: "find ~/fetch/solution_*/top/ -maxdepth 1 -name 'solution_*.pdb'"
-      register: available_solutions
+    #  - name: Find all puzzles with available data
+    #    shell: "find ~/fetch/solution_*/top/ -maxdepth 1 -name 'solution_*.pdb'"
+    #    register: available_solutions
 
-    - name: Find puzzles that have already been downloaded
+    #  - name: Find puzzles that have already been downloaded
 
-    - name: Filter out the puzzles that have already been downloaded
-      when: overwrite == "no"
-
-    - name: Build the parsing script
-      local_action: shell "go install github.com/pedmiston/foldit"
+    #  - name: Filter out the puzzles that have already been downloaded
+    #    when: overwrite == "no"
 
     - name: Run the puzzle solutions through the parsing script
-      script: "bin/foldit"
+      script: "~/foldit/bin/foldit"
       register: foldit_output
 
     - debug:
         msg: "{{ foldit_output }}"
 
-    - name: Fetch the data output from the go script from the src machine
+    # - name: Fetch the data output from the go script from the src machine

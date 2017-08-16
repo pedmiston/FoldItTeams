@@ -10,3 +10,4 @@ demo-scripts/
 .Rproj.user
 *.html
 bin/
+*.swp
