@@ -2,6 +2,12 @@
 
 This project investigates the impact of inheritance on problem solving ability in the scientific discovery game **FoldIt**. Problem solving in **FoldIt** involves folding amino acid structures into three-dimensional protein structures. Individuals may work alone or together by sharing partial solutions for others to inherit. This investigation measures the impact of inheritance on problem solving ability by comparing the effectiveness of teams of problem solvers to individuals working alone. The goal of this investigation is to uncover the tradeoffs involved in sharing partial solutions to problems among groups of problem solvers in open-ended problem solving contexts.
 
+# Playbooks
+
+## Getting available puzzle data
+
+To get the puzzle data that is available on the <analytics.fold.it> server, run the Ansible Playbook "get_puzzle_data.yml" from a verified machine that has access to the data server.
+
 ## Finding puzzles
 
 Solution data is stored on the server at <analytics.fold.it>. Solution data

@@ -1,0 +1,31 @@
+---
+- hosts: analytics.fold.it
+  remote_user: pierce
+  vars:
+    # Overwrite files if they exist on src and at dest
+    - overwrite: no
+  tasks:
+    - name: Verify that the dest directory exists
+      local_action: file path={{ top_solutions_dest }} state=directory
+
+    - name: Find all available puzzles
+      shell: "find ~/fetch/solution_*/top/ -maxdepth 1 -name 'solution_*.pdb'"
+      register: available_solutions
+
+    - name: Find puzzles that have already been downloaded
+
+    - name: Filter out the puzzles that have already been downloaded
+      when: overwrite == "no"
+
+    - name: Build the parsing script
+      local_action: shell GOOS={{ analytics_os }} GOARCH={{ analytics_arch }} go install
+
+    - name: Run the puzzle solutions through the parsing script
+      script: "bin/foldit {{ solutions }}"
+
+    - name: Get the top puzzle data from the foldit server
+      synchronize:
+        src: "~/foldit/playbooks/{{ top_solutions_dest }}/puzzle_{{ puzzle_id }}/*.pdb"
+        dest: "{{ top_solutions_dest }}/puzzle_{{ puzzle_id }}/"
+        mode: pull
+      when: host == "foldit"
