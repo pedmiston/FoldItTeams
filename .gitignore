@@ -4,7 +4,7 @@
 .DS_Store
 *.pyc
 *.pdb
-!testdata/**/*.pdb
+!src/github.com/pedmiston/foldit/testdata/**/*.pdb
 __pycache__/
 demo-scripts/
 *.retry
@@ -12,3 +12,10 @@ demo-scripts/
 *.html
 bin/
 *.swp
+
+# go
+pkg/
+src/*
+!src/github.com/pedmiston
+
+.ipynb_checkpoints/
