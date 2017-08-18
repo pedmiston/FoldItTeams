@@ -2,4 +2,5 @@
 dest: data/top
 
 available_solutions: "{{ dest }}/available_solutions.txt"
+remaining_solutions: "{{ dest }}/remaining_solutions.txt"
 solution_data:       "{{ dest }}/solution_data.csv"

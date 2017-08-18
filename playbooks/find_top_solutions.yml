@@ -8,10 +8,18 @@
       file: path=~/{{ dest }} state=directory
 
     - name: Find all puzzles with available data
-      shell: 'find ~/fetch/ -maxdepth 1 -name "solution_*" -type d -exec find {}/top -maxdepth 1 -name "*.pdb" \; > ~/{{ available_solutions }}'
+      shell: 'source ~/.profile && find ~/fetch/ -maxdepth 1 -name "solution_*" -type d -exec find {}/top -maxdepth 1 -name "*.pdb" \; > ~/{{ available_solutions }}'
+      args:
+        executable: /bin/bash
 
     - name: Verify that the dest directory exists on control
       local_action: file path={{ dest }} state=directory
 
     - name: Fetch the available solutions back to the control machine
       fetch: src=~/{{ available_solutions }} dest={{ available_solutions }} flat=yes
+
+    - name: Run the filtering script on the control machine
+      local_action: script bin/filter_already_downloaded.py
+
+    - name: Copy solutions not downloaded back to src
+      copy: src={{ remaining_solutions }} dest=~/{{ remaining_solutions }}

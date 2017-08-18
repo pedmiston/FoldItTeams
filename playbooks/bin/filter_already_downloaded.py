@@ -2,7 +2,7 @@
 import pandas
 import unipath
 
-PLAYBOOKS = unipath.Path(__file__).absolute().ancestor(2)
+PLAYBOOKS = '~/foldit/playbooks'
 TOP_DATA = unipath.Path(PLAYBOOKS, 'data/top')
 
 available_solutions = pandas.read_table(
@@ -22,6 +22,6 @@ else:
     solutions_not_downloaded = available_solutions
 
 solutions_not_downloaded.path.to_csv(
-    unipath.Path(TOP_DATA, 'solutions_not_downloaded.txt'),
+    unipath.Path(TOP_DATA, 'remaining_solutions.txt'),
     index=False
 )
