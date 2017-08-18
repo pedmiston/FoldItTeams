@@ -1,43 +1,37 @@
 ---
 - hosts: analytics.fold.it
   remote_user: pierce
-  vars:
-    - downloaded_solutions: []
-    # Overwrite downloaded solutions if they exist on src
-    - overwrite: no
   vars_files:
     - vars/top.yml
   tasks:
+    - name: Verify that the dest directory exists on src
+      file: path=~/{{ dest }} state=directory
+
+    - name: Find all puzzles with available data
+      shell: 'source ~/.profile && find ~/fetch/ -maxdepth 1 -name "solution_*" -type d -exec find {}/top -maxdepth 1 -name "*.pdb" \; > ~/{{ available_solutions }}'
+      args:
+        executable: /bin/bash
+        creates: "~/{{ available_solutions }}"
+
     - name: Verify that the dest directory exists on control
       local_action: file path={{ dest }} state=directory
 
-    - name: Verify that the dest directory exists on src
-      file:
-        path: "~/{{ dest }}"
-        state: directory
+    - name: Fetch the available solutions back to the control machine
+      fetch: src=~/{{ available_solutions }} dest={{ available_solutions }} flat=yes
 
-    - name: Find all puzzles with available data
-      shell: "find ~/fetch/solution_*/top/ -maxdepth 1 -name 'solution_*.pdb'"
-      register: find_available_solutions
+    - name: Run the filtering script on the control machine
+      local_action: script bin/filter_already_downloaded.py
 
-    - name: Load the names of puzzles that have already been downloaded
-      include_vars:
-        file: "{{ dest }}/downloaded.yml"
-      when: overwrite == "no"
-      ignore_errors: yes
-
-    - name: Write the new solutions that need to be downloaded to a file
-      copy:
-        content: "{{ find_available_solutions.stdout | difference(downloaded_solutions) }}"
-        dest: "{{ solution_paths }}"
+    - name: Copy solutions not downloaded back to src
+      copy: src={{ remaining_solutions }} dest=~/{{ remaining_solutions }}
 
     - name: Go get the foldit script
       local_action: shell go get github.com/pedmiston/foldit
 
     - name: Run the puzzle solutions through the parsing script
-      script: "cat {{ solution_paths }} | ~/go/bin/foldit > {{ solution_data }}"
+      script: ~/go/bin/foldit ~/{{ remaining_solutions }} > ~/{{ solution_data }}
+      args:
+        creates: "~/{{ solution_data }}"
 
     - name: Download the data
-      fetch:
-        src: "{{ solution_data }}"
-        dest: "{{ dest }}/{{ ansible_date_time.date }}.csv"
+      fetch: src=~/{{ solution_data }} dest={{ solution_data }}
