@@ -1,5 +1,5 @@
 ---
 dest: data/top
 
-solution_paths: "~/{{ dest }}/solutions.txt"
-solution_data:  "~/{{ dest }}/solutions.csv"
+available_solutions: "{{ dest }}/available_solutions.txt"
+solution_data:       "{{ dest }}/solution_data.csv"
