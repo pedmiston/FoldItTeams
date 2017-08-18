@@ -31,10 +31,11 @@
         content: "{{ find_available_solutions.stdout | difference(downloaded_solutions) }}"
         dest: "{{ solution_paths }}"
 
-    # go get the foldit script
+    - name: Go get the foldit script
+      local_action: shell go get github.com/pedmiston/foldit
 
     - name: Run the puzzle solutions through the parsing script
-      script: "cat {{ solution_paths }} | ~/foldit/bin/foldit > {{ solution_data }}"
+      script: "cat {{ solution_paths }} | ~/go/bin/foldit > {{ solution_data }}"
 
     - name: Download the data
       fetch:

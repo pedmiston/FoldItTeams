@@ -1,21 +1,13 @@
 .env
 .vault_pass.txt
-.osfcli.config
 .DS_Store
 *.pyc
 *.pdb
-!src/github.com/pedmiston/foldit/testdata/**/*.pdb
 __pycache__/
 demo-scripts/
 *.retry
 .Rproj.user
 *.html
-bin/
 *.swp
-
-# go
-pkg/
-src/*
-!src/github.com/pedmiston
 
 .ipynb_checkpoints/
