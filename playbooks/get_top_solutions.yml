@@ -1,0 +1,42 @@
+---
+- hosts: analytics.fold.it
+  remote_user: pierce
+  vars:
+    - downloaded_solutions: []
+    # Overwrite downloaded solutions if they exist on src
+    - overwrite: no
+  vars_files:
+    - vars/top.yml
+  tasks:
+    - name: Verify that the dest directory exists on control
+      local_action: file path={{ dest }} state=directory
+
+    - name: Verify that the dest directory exists on src
+      file:
+        path: "~/{{ dest }}"
+        state: directory
+
+    - name: Find all puzzles with available data
+      shell: "find ~/fetch/solution_*/top/ -maxdepth 1 -name 'solution_*.pdb'"
+      register: find_available_solutions
+
+    - name: Load the names of puzzles that have already been downloaded
+      include_vars:
+        file: "{{ dest }}/downloaded.yml"
+      when: overwrite == "no"
+      ignore_errors: yes
+
+    - name: Write the new solutions that need to be downloaded to a file
+      copy:
+        content: "{{ find_available_solutions.stdout | difference(downloaded_solutions) }}"
+        dest: "{{ solution_paths }}"
+
+    # go get the foldit script
+
+    - name: Run the puzzle solutions through the parsing script
+      script: "cat {{ solution_paths }} | ~/foldit/bin/foldit > {{ solution_data }}"
+
+    - name: Download the data
+      fetch:
+        src: {{ solution_data }}
+        dest: "{{ dest }}/{{ ansible_date_time.date }}.csv"

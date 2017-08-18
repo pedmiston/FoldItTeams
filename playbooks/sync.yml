@@ -1,5 +1,0 @@
-- hosts: foldit
-  vars:
-    - path_to_foldit_git_repo: ~/foldit
-  tasks:
-    - include: tasks/update_foldit_git_repo.yml
