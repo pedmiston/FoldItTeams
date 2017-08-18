@@ -38,5 +38,5 @@
 
     - name: Download the data
       fetch:
-        src: {{ solution_data }}
+        src: "{{ solution_data }}"
         dest: "{{ dest }}/{{ ansible_date_time.date }}.csv"
