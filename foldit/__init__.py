@@ -1,4 +1,5 @@
 import unipath
+from foldit.solution import TopSolution
 
 PROJ_ROOT = unipath.Path(__file__).absolute().ancestor(2)
 PLAYBOOKS = PROJ_ROOT
