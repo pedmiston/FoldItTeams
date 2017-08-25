@@ -1,0 +1,6 @@
+digraph {
+  node[fontname=Helvetica];
+  rankdir = BT;
+  localhost -> foldit -> analytics_fold_it;
+  analytics_fold_it[label="analytics.fold.it"];
+}

@@ -5,6 +5,7 @@
 *.pdb
 __pycache__/
 demo-scripts/
+example-puzzles/solution_2003903/
 *.retry
 .Rproj.user
 *.html
