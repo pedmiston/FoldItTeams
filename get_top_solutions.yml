@@ -29,7 +29,7 @@
       fetch: src=~/{{ available_solutions }} dest={{ available_solutions }} flat=yes
 
     - name: Run the filtering script on foldit
-      local_action: script bin/filter_already_downloaded.py {{ available_solutions }} | head -n {{ batch_size }} > {{ solutions_to_process }}
+      local_action: script scripts/filter_already_downloaded.py {{ available_solutions }} | head -n {{ batch_size }} > {{ solutions_to_process }}
 
     - name: Figure out how many solutions are set to be processed
       local_action: shell wc -l {{ solutions_to_process }} | awk '{ print($1) }'

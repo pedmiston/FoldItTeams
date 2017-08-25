@@ -5,8 +5,9 @@ import json
 import pandas
 import unipath
 
-PLAYBOOKS = unipath.Path('~/foldit/playbooks')
-TOP_DATA = PLAYBOOKS + '/data/top'
+PROJ_ROOT = unipath.Path('~/')
+PLAYBOOKS = PROJ_ROOT
+TOP_DATA = PLAYBOOKS + '/data-raw/top'
 SOLUTION_DATA = TOP_DATA + '/run-*/solution_data.json'
 
 
