@@ -19,7 +19,7 @@ if __name__ == '__main__':
     already_downloaded = []
     for solution_data in glob.glob(foldit.TOP_SOLUTION_DATA_GLOB):
         solution_filenames = extract_solution_filenames(solution_data)
-        already_downloaded.extend(solution_filename)
+        already_downloaded.extend(solution_filenames)
 
     solutions_not_downloaded = available_solutions.ix[
         ~available_solutions.isin(already_downloaded)

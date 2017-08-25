@@ -54,3 +54,7 @@
 
     - name: Download the data
       fetch: src=~/{{ solution_data }} dest={{ solution_data }} flat=yes
+
+    - name: Delete the compiled data on analytics.fold.it
+      file: path={{ dest }} state=absent
+
