@@ -1,3 +1,6 @@
+available_solutions.txt
+solutions_to_process.txt
+
 .env
 .vault_pass.txt
 .DS_Store
