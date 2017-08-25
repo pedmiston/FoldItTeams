@@ -6,13 +6,13 @@ import pandas
 import unipath
 
 PLAYBOOKS = unipath.Path('~/foldit/playbooks')
-TOP_DATA = PLAYBOOKS + 'data/top'
+TOP_DATA = PLAYBOOKS + '/data/top'
 SOLUTION_DATA = TOP_DATA + '/run-*/solution_data.json'
 
 
 def extract_solution_filenames(solution_data):
-    solution_filenames = []
-    return solution_filenames
+    return [json.loads(solution)['Filename']
+            for solution in open(solution_data)]
 
 
 if __name__ == '__main__':
