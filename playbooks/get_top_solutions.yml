@@ -46,4 +46,4 @@
         creates: "~/{{ solution_data }}"
 
     - name: Download the data
-      fetch: src=~/{{ solution_data }} dest={{ solution_data }}
+      fetch: src=~/{{ solution_data }} dest={{ solution_data }} flat=yes

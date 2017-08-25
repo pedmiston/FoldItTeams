@@ -3,4 +3,4 @@
 dest: "data/top/run-{{ run_id }}"
 available_solutions: "{{ dest }}/available_solutions.txt"
 solutions_to_process: "{{ dest }}/solutions_to_process.txt"
-solution_data:       "{{ dest }}/solution_data.csv"
+solution_data:       "{{ dest }}/solution_data.json"
