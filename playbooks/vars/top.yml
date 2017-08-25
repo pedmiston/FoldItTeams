@@ -1,6 +1,6 @@
 ---
-dest: data/top
-
+# These paths will exist on <analytics.fold.it> and on <foldit>
+dest: "data/top/run-{{ run_id }}"
 available_solutions: "{{ dest }}/available_solutions.txt"
-remaining_solutions: "{{ dest }}/remaining_solutions.txt"
+solutions_to_process: "{{ dest }}/solutions_to_process.txt"
 solution_data:       "{{ dest }}/solution_data.csv"

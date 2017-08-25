@@ -1,35 +1,47 @@
 ---
 - hosts: analytics.fold.it
   remote_user: pierce
+  vars:
+    - run_id: "{{ ansible_facts.ansible_date_time.epoch }}"
+    - batch_size: 1000
   vars_files:
     - vars/top.yml
   tasks:
-    - name: Verify that the dest directory exists on src
+
+    # Verify that the dest directories exist
+
+    - name: Verify that the dest directory exists on analytics.fold.it
       file: path=~/{{ dest }} state=directory
 
-    - name: Find all puzzles with available data
-      shell: 'source ~/.profile && find ~/fetch/ -maxdepth 1 -name "solution_*" -type d -exec find {}/top -maxdepth 1 -name "*.pdb" \; > ~/{{ available_solutions }}'
+    - name: Verify that the dest directory exists on foldit
+      local_action: file path={{ dest }} state=directory
+
+
+    # Figure out which solutions to process
+
+    - name: Find all puzzles with data available on analytics.fold.it
+      shell: 'find ~/fetch/ -maxdepth 1 -name "solution_*" -type d -exec find {}/top -maxdepth 1 -name "*.pdb" \; > ~/{{ available_solutions }}'
       args:
         executable: /bin/bash
         creates: "~/{{ available_solutions }}"
 
-    - name: Verify that the dest directory exists on control
-      local_action: file path={{ dest }} state=directory
-
-    - name: Fetch the available solutions back to the control machine
+    - name: Fetch the available solutions txt file back to foldit
       fetch: src=~/{{ available_solutions }} dest={{ available_solutions }} flat=yes
 
-    - name: Run the filtering script on the control machine
-      local_action: script bin/filter_already_downloaded.py
+    - name: Run the filtering script on foldit
+      local_action: script bin/filter_already_downloaded.py {{ available_solutions }} | head -n {{ batch_size }} > {{ solutions_to_process }}
 
-    - name: Copy solutions not downloaded back to src
-      copy: src={{ remaining_solutions }} dest=~/{{ remaining_solutions }}
+    - name: Copy solutions not downloaded txt file back to analytics.fold.it
+      copy: src={{ solutions_to_process }} dest=~/{{ solutions_to_process }}
 
-    - name: Go get the foldit script
+
+    # Process the solutions on analytics.fold.it
+
+    - name: Go get the latest foldit script
       local_action: shell go get github.com/pedmiston/foldit
 
     - name: Run the puzzle solutions through the parsing script
-      script: ~/go/bin/foldit ~/{{ remaining_solutions }} > ~/{{ solution_data }}
+      script: ~/go/bin/foldit -type top -input ~/{{ solutions_to_process }} -output ~/{{ solution_data }}
       args:
         creates: "~/{{ solution_data }}"
 
