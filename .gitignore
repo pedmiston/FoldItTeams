@@ -12,6 +12,7 @@ example-puzzles/
 *.pyc
 __pycache__/
 *.retry
+*.egg-info/
 
 # R
 .Rproj.user

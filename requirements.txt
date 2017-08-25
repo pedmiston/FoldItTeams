@@ -3,3 +3,4 @@ pandas==0.20.3
 unipath
 ipython
 invoke==0.20.3
+-e .

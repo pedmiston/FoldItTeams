@@ -4,11 +4,7 @@ import glob
 import json
 import pandas
 import unipath
-
-PROJ_ROOT = unipath.Path('~/')
-PLAYBOOKS = PROJ_ROOT
-TOP_DATA = PLAYBOOKS + '/data-raw/top'
-SOLUTION_DATA = TOP_DATA + '/run-*/solution_data.json'
+import foldit
 
 
 def extract_solution_filenames(solution_data):
@@ -21,7 +17,7 @@ if __name__ == '__main__':
     available_solutions = pandas.read_table(sys.argv[1], names=['path']).path
 
     already_downloaded = []
-    for solution_data in glob.glob(SOLUTION_DATA):
+    for solution_data in glob.glob(foldit.TOP_SOLUTION_DATA_GLOB):
         solution_filenames = extract_solution_filenames(solution_data)
         already_downloaded.extend(solution_filename)
 
