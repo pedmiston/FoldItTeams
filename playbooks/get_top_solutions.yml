@@ -31,6 +31,13 @@
     - name: Run the filtering script on foldit
       local_action: script bin/filter_already_downloaded.py {{ available_solutions }} | head -n {{ batch_size }} > {{ solutions_to_process }}
 
+    - name: Figure out how many solutions are set to be processed
+      local_action: shell wc -l {{ solutions_to_process }} | awk '{ print($1) }'
+      register: wc_solutions_to_process
+
+    - name: Ensure that there are files to process or fail out
+      assert: { that: "wc_solutions_to_process.stdout | int > 0" }
+
     - name: Copy solutions not downloaded txt file back to analytics.fold.it
       copy: src={{ solutions_to_process }} dest=~/{{ solutions_to_process }}
 
