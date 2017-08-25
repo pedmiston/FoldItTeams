@@ -3,7 +3,7 @@
   remote_user: pierce
   vars:
     - run_id: "{{ ansible_date_time.epoch }}"
-    - batch_size: 1000
+    - batch_size: 10000
   vars_files:
     - vars/top.yml
   tasks:
