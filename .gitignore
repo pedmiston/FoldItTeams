@@ -1,3 +1,5 @@
+*.html
+
 .env
 .vault_pass.txt
 
@@ -13,7 +15,10 @@ __pycache__/
 
 # R
 .Rproj.user
-*.html
+.Rhistory
+.RData
+
+
 
 # os
 .DS_Store
