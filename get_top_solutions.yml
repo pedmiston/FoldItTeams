@@ -37,6 +37,9 @@
 
     - name: Ensure that there are files to process or fail out
       assert: { that: "wc_solutions_to_process.stdout | int > 0" }
+      notify:
+         - clean up
+      force_handlers: True
 
     - name: Copy solutions not downloaded txt file back to analytics.fold.it
       copy: src={{ solutions_to_process }} dest=~/{{ solutions_to_process }}
@@ -54,7 +57,8 @@
 
     - name: Download the data
       fetch: src=~/{{ solution_data }} dest={{ solution_data }} flat=yes
+      notify: clean up
 
-    - name: Delete the compiled data on analytics.fold.it
+  handlers:
+    - name: clean up
       file: path=~/{{ dest }} state=absent
-
