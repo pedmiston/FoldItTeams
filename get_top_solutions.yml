@@ -6,6 +6,7 @@
     - batch_size: 10000
   vars_files:
     - vars/top.yml
+  force_handlers: True
   tasks:
 
     # Verify that the dest directories exist
@@ -24,6 +25,8 @@
       args:
         executable: /bin/bash
         creates: "~/{{ available_solutions }}"
+      notify:
+        - clean up
 
     - name: Fetch the available solutions txt file back to foldit
       fetch: src=~/{{ available_solutions }} dest={{ available_solutions }} flat=yes
@@ -37,12 +40,11 @@
 
     - name: Ensure that there are files to process or fail out
       assert: { that: "wc_solutions_to_process.stdout | int > 0" }
-      notify:
-         - clean up
-      force_handlers: True
 
     - name: Copy solutions not downloaded txt file back to analytics.fold.it
       copy: src={{ solutions_to_process }} dest=~/{{ solutions_to_process }}
+      notify:
+        - clean up
 
 
     # Process the solutions on analytics.fold.it
@@ -54,10 +56,11 @@
       script: ~/go/bin/foldit -type top -input ~/{{ solutions_to_process }} -output ~/{{ solution_data }}
       args:
         creates: "~/{{ solution_data }}"
+      notify:
+        - clean up
 
     - name: Download the data
       fetch: src=~/{{ solution_data }} dest={{ solution_data }} flat=yes
-      notify: clean up
 
   handlers:
     - name: clean up
