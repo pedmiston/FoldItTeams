@@ -3,6 +3,8 @@
 .env
 .vault_pass.txt
 
+data-raw/top/
+
 available_solutions.txt
 solutions_to_process.txt
 demo-scripts/
