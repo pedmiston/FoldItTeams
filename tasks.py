@@ -1,5 +1,6 @@
 import glob
 import json
+import sqlite3
 import invoke
 import unipath
 import pandas
@@ -28,39 +29,21 @@ def use_data(ctx, clear_data_before=False):
 
 
 @invoke.task
-def collect_csvs(ctx):
+def collect_sqlite(ctx):
     """Collect data from json files into csvs for analysis."""
-    top_scores_dst = foldit.R_PKG_DATA_RAW + '/top_scores.csv'
-    top_actions_dst = foldit.R_PKG_DATA_RAW + '/top_actions.csv'
-
-    top_scores = []
-    top_actions = []
+    top_scores_sqlite = foldit.R_PKG_DATA + '/top.sqlite'
+    con = sqlite3.connect(top_scores_sqlite)
 
     for json_file in glob.glob(foldit.TOP_SOLUTION_DATA_GLOB):
+        top_scores = []
+        top_actions = []
         for solution_data in open(json_file):
             top_solution = foldit.TopSolution(json.loads(solution_data))
             top_scores.append(top_solution.to_record())
             top_actions.append(top_solution.get_actions())
+        
+        pandas.DataFrame.from_records(top_scores).to_sql(
+            'Scores', con, if_exists='append')
+        pandas.concat(top_actions, ignore_index=True).to_sql(
+            'Actions', con, if_exists='append')
 
-    pandas.DataFrame.from_records(top_scores).to_csv(top_scores_dst, index=False)
-    pandas.concat(top_actions).to_csv(top_actions_dst, index=False)
-
-@invoke.task
-def collect_feather(ctx):
-    """Collect data from json files into dataframes in feather format."""
-    top_scores_dst = foldit.R_PKG_DATA_RAW + '/top_scores.feather'
-    top_actions_dst = foldit.R_PKG_DATA_RAW + '/top_actions.feather'
-
-    top_scores = []
-    top_actions = []
-
-    for json_file in glob.glob(foldit.TOP_SOLUTION_DATA_GLOB):
-        for solution_data in open(json_file):
-            top_solution = foldit.TopSolution(json.loads(solution_data))
-            top_scores.append(top_solution.to_record())
-            top_actions.append(top_solution.get_actions())
-
-    feather.write_dataframe(pandas.DataFrame.from_records(top_scores),
-                            top_scores_dst)
-    feather.write_dataframe(pandas.concat(top_actions),
-                            top_actions_dst)

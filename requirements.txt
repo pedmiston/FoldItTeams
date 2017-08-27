@@ -5,3 +5,4 @@ ipython
 invoke==0.20.3
 -e .
 feather-format==0.4.0
+SQLAlchemy==1.1.13
