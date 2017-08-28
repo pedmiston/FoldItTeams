@@ -11,3 +11,13 @@ go get github.com/pedmiston/foldit
 pip install git+git://github.com/pedmiston/foldit#egg=foldit
 Rscript -e "devtools::install_github('pedmiston/foldit')"
 ```
+
+# FoldIt server
+
+Requirements:
+
+- awscli
+
+## AWS
+
+To configure AWS for S3 storage, install the `awscli` and run `aws configure`.

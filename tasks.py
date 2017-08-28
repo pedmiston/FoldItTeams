@@ -4,7 +4,7 @@ import sqlite3
 import invoke
 import unipath
 import pandas
-import feather
+import boto3
 import foldit
 
 
@@ -48,3 +48,23 @@ def push_to_db(ctx):
         pandas.concat(top_actions, ignore_index=True).to_sql(
             'TopActions', con, if_exists='append')
 
+@invoke.task
+def push_to_s3(ctx):
+    filename = foldit.R_PKG_DATA_RAW + '/top.json'
+    assert filename.exists()
+    s3 = boto3.resource('s3')
+    data = open(filename, 'rb')
+    s3.Bucket('foldit').put_object(Key='top.json', Body=data)
+    data.close()
+
+@invoke.task
+def pull_from_s3(ctx):
+    filename = foldit.R_PKG_DATA_RAW + '/top.json'
+    s3 = boto3.resource('s3')
+    try:
+        s3.Bucket('foldit').download_file('top.json', filename)
+    except botocore.exceptions.ClientError as e:
+        if e.response['Error']['Code'] == "404":
+            print("The object does not exist")
+        else:
+            raise

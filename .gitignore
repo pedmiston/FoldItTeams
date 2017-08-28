@@ -4,6 +4,7 @@
 .vault_pass.txt
 
 data-raw/top/
+data-raw/top.json
 
 available_solutions.txt
 solutions_to_process.txt
