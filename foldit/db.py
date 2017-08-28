@@ -13,7 +13,7 @@ def connect_to_db():
         password=get_from_vault('foldit_password'),
         host='localhost',
         port='3306',
-        dbname='Totems',
+        dbname='Foldit',
     )
     con = sqlalchemy.create_engine(url)
     return con
