@@ -29,21 +29,22 @@ def use_data(ctx, clear_data_before=False):
 
 
 @invoke.task
-def collect_sqlite(ctx):
+def push_to_db(ctx):
     """Collect data from json files into csvs for analysis."""
-    top_scores_sqlite = foldit.R_PKG_DATA + '/top.sqlite'
-    con = sqlite3.connect(top_scores_sqlite)
+    con = foldit.connect_to_db()
 
     for json_file in glob.glob(foldit.TOP_SOLUTION_DATA_GLOB):
+        print("Processing json file: " + json_file)
         top_scores = []
         top_actions = []
+
         for solution_data in open(json_file):
             top_solution = foldit.TopSolution(json.loads(solution_data))
             top_scores.append(top_solution.to_record())
             top_actions.append(top_solution.get_actions())
         
         pandas.DataFrame.from_records(top_scores).to_sql(
-            'Scores', con, if_exists='append')
+            'TopScores', con, if_exists='append')
         pandas.concat(top_actions, ignore_index=True).to_sql(
-            'Actions', con, if_exists='append')
+            'TopActions', con, if_exists='append')
 
