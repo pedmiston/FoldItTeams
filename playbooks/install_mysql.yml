@@ -11,6 +11,10 @@
           host: "%"
           password: "{{ foldit_password }}"
           priv: "{{ db_name }}.*:ALL"
+        - name: foldit
+          host: "localhost"
+          password: "{{ foldit_password }}"
+          priv: "{{ db_name }}.*:ALL"
   vars_files:
     - vars/secrets.yml
   pre_tasks:
