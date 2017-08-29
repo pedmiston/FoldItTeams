@@ -1,10 +1,8 @@
 ansible==2.3.1.0
+ansible-vault==1.0.4
 pandas==0.20.3
 unipath
 ipython
 invoke==0.20.3
--e .
-feather-format==0.4.0
 SQLAlchemy==1.1.13
-ansible-vault==1.0.4
 boto3==1.4.6
