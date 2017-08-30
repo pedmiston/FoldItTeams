@@ -22,7 +22,7 @@ func TestAcceptsInputFromFile(t *testing.T) {
 	tmpOutputFile := createTmpFile()
 	defer os.Remove(tmpOutputFile.Name())
 
-	processTopSolutions(tmpInputFile, tmpOutputFile)
+	writeTopSolutionsToJSON(tmpInputFile, tmpOutputFile)
 
 	if outputLines := countLinesInFile(tmpOutputFile.Name()); outputLines != 1 {
 		t.Error("Expected 1 output lines but got", outputLines)
@@ -44,7 +44,7 @@ func TestSkippingBadFiles(t *testing.T) {
 	tmpOutputFile := createTmpFile()
 	defer os.Remove(tmpOutputFile.Name())
 
-	processTopSolutions(tmpInputFile, tmpOutputFile)
+	writeTopSolutionsToJSON(tmpInputFile, tmpOutputFile)
 
 	if outputLines := countLinesInFile(tmpOutputFile.Name()); outputLines != 2 {
 		t.Error("Expected 2 output lines but got", outputLines)

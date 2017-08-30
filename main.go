@@ -1,8 +1,17 @@
 /*foldit extracts data from FoldIt solution files.
 
+Subcommands:
+	foldit new [options]   # convert new solution files to json data
+	foldit tidy [options]  # convert json data to structured csvs
+
+
+# foldit new [options]
+
+The `new` subcommand processes new solution files in batches.
+
 Usage:
-	foldit -input top_solution_file_paths.txt -type top -output top_solution_data.csv
-	cat solution_file_paths.txt | foldit -type regular > solution_data.csv
+	foldit new -input top_solution_file_paths.txt -type top -output top_solution_data.json
+	cat top_solution_file_paths.txt | foldit new -type top > top_solution_data.json
 
 File paths can be provided on stdin or in a file. Output gets sent
 to the output file or stdout if none is given.
@@ -16,31 +25,38 @@ Regular solution files are saved at regular intervals during gameplay. Top
 solution files are solutions that have been evaluated for quality compared to all
 other submissions. Top solution files contain data in the filename (e.g., the type
 of ranking and the numeric rank of this particular solution.).
+
+
+# foldit tidy [options]
+
+The `tidy` subcommand assembles csvs from all batched solution files. There
+are three types of tidy outputs that can be created from each solution struct.
+
+1. Scores
+2. Actions
+3. History
+
+Usage:
+	foldit tidy -input top_solution_data.json -type actions -output top_solution_actions.csv
 */
 package main
 
 import (
-	"bufio"
-	"encoding/json"
 	"flag"
 	"log"
 	"os"
 )
 
 var (
-	inputFile, outputFile *os.File
-	err                   error
+	solutionType, input, output *string
+	inputFile, outputFile       *os.File
+	err                         error
 )
 
-type result struct {
-	data TopSolution
-	err  error
-}
-
 func main() {
-	solutionType := flag.String("type", "", "Type of solution file. Can be 'top' or 'regular'.")
-	input := flag.String("input", "", "Files to process. Defaults to Stdin.")
-	output := flag.String("output", "", "Destination for data. Defaults to Stdout.")
+	solutionType = flag.String("type", "", "Type of solution file. Can be 'top' or 'regular'.")
+	input = flag.String("input", "", "Files to process. Defaults to Stdin.")
+	output = flag.String("output", "", "Destination for data. Defaults to Stdout.")
 	flag.Parse()
 
 	if *input != "" {
@@ -61,42 +77,35 @@ func main() {
 		outputFile = os.Stdout
 	}
 
+	subcommand := flag.Args()[0]
+	switch subcommand {
+	case "new":
+		newSolutions(inputFile, outputFile)
+	case "tidy":
+		tidy(inputFile, outputFile)
+	default:
+		log.Fatalln("first arg " + subcommand + " must be 'new' or 'tidy'")
+	}
+}
+
+func newSolutions(input *os.File, output *os.File) {
 	switch *solutionType {
 	case "top":
-		processTopSolutions(inputFile, outputFile)
+		writeTopSolutionsToJSON(inputFile, outputFile)
 	case "regular":
 		panic("Need to implement parseRegularSolution")
 	default:
 		panic("unknown solutionType")
 	}
-
 }
 
-func processTopSolutions(input *os.File, output *os.File) {
-	scanner := bufio.NewScanner(input)
-	encoder := json.NewEncoder(output)
-
-	// Run a go routine for each input file
-	// and send the results back on a channel.
-	ch := make(chan result)
-	var chSize int
-	for scanner.Scan() {
-		go func(f string) {
-			topSolution, err := readTopSolution(f)
-			ch <- result{*topSolution, err}
-		}(scanner.Text())
-		chSize++
-	}
-
-	// Pull results from the channel.
-	for j := 0; j < chSize; j++ {
-		result := <-ch
-		if result.err != nil {
-			log.Println(result.err)
-		}
-		err := encoder.Encode(&result.data)
-		if err != nil {
-			log.Println(err)
-		}
+func tidy(input *os.File, output *os.File) {
+	switch *solutionType {
+	case "scores":
+		//
+	case "actions":
+		//
+	default:
+		panic("unknown solutionType")
 	}
 }
