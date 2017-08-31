@@ -19,9 +19,11 @@ package main
 
 import (
 	"bufio"
+	"encoding/csv"
 	"flag"
 	"log"
 	"os"
+	"path"
 )
 
 var (
@@ -55,4 +57,57 @@ func main() {
 	default:
 		panic("unknown pdbType")
 	}
+}
+
+func WriteTopSolutionData(scanner *bufio.Scanner, outputDir string) {
+	topSolutionGen := LoadTopSolutions(scanner)
+	tidyResultGen := TidyTopSolutions(topSolutionGen)
+
+	scoresWriter := createWriter(outputDir, "scores")
+	actionsWriter := createWriter(outputDir, "actions")
+	historyWriter := createWriter(outputDir, "history")
+
+	for tidyResult := range tidyResultGen {
+		for _, line := range tidyResult.Scores {
+			scoresWriter.Write(line)
+		}
+		for _, line := range tidyResult.Actions {
+			actionsWriter.Write(line)
+		}
+		for _, line := range tidyResult.History {
+			historyWriter.Write(line)
+		}
+	}
+}
+
+func loadTopSolutions(filenames *bufio.Scanner) <-chan *TopSolution {
+	out := make(chan *TopSolution)
+	go func() {
+		for filenames.Scan() {
+			out <- NewTopSolution(filenames.Text())
+		}
+		close(out)
+	}()
+	return out
+}
+
+func exportTopSolutions(in <-chan *TopSolution) <-chan *TopSolutionData {
+	out := make(chan *TopSolutionData)
+	go func() {
+		for topSolution := range in {
+			out <- NewTopSolutionData(topSolution)
+		}
+		close(out)
+	}()
+	return out
+}
+
+func createWriter(outputDir, dataType string) *csv.Writer {
+	outputDst := path.Join(outputDir, dataType+".csv")
+	outputFile, err := os.Open(outputDst)
+	if err != nil {
+		log.Fatalln("Can't open output file " + outputDst)
+	}
+	outputWriter := csv.NewWriter(outputFile)
+	return outputWriter
 }

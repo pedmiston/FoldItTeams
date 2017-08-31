@@ -3,7 +3,6 @@ package main
 import (
 	"bufio"
 	"errors"
-	"log"
 	"os"
 	"regexp"
 	"strconv"
@@ -17,7 +16,7 @@ var (
 	reHistory   = regexp.MustCompile(`^IRDATA HISTORY`)
 )
 
-// A Solution is a collection of data extracted from a solution file
+// A Solution is a collection of data extracted from a solution file.
 type Solution struct {
 	PuzzleID  int
 	UserID    int
@@ -31,25 +30,27 @@ type Solution struct {
 }
 
 // NewSolution creates a new Solution from solution pdb file.
-func NewSolution(solutionFilename string) *Solution {
+func NewSolution(filename string) *Solution {
 	// The minimal Solution contains only the solution filename
-	solution := Solution{Filename: solutionFilename}
+	solution := &Solution{Filename: filename}
 
-	solutionFile, err := os.Open(solutionFilename)
+	file, err := os.Open(filename)
 	if err != nil {
 		solution.Errors = []error{err}
 	}
-	defer solutionFile.Close()
+	defer file.Close()
 
-	puzzleID, err := readPuzzleIDFromFilename(solutionFilename)
+	puzzleID, err := readPuzzleIDFromFilename(filename)
 	if err != nil {
-		log.Println("Unable to get puzzleID from filename:", solutionFilename)
+		solution.Errors = append(solution.Errors, err)
 	}
 	solution.PuzzleID = puzzleID
 
-	scanner := bufio.NewScanner(solutionFile)
+	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		line := scanner.Text()
+
+		// TODO
 		if rePDL.MatchString(line) {
 			solution.addDataFromPDL(line)
 		} else if reTimestamp.MatchString(line) {
@@ -59,7 +60,7 @@ func NewSolution(solutionFilename string) *Solution {
 		}
 	}
 
-	return solution, nil
+	return solution
 }
 
 func (s *Solution) addDataFromPDL(pdlLine string) {
