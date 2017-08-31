@@ -91,11 +91,11 @@ func loadTopSolutions(filenames *bufio.Scanner) <-chan *TopSolution {
 	return out
 }
 
-func pushTopData(in <-chan *TopSolution) <-chan *TopSolutionData {
-	out := make(chan *TopSolutionData)
+func pushTopData(in <-chan *TopSolution) <-chan *TopData {
+	out := make(chan *TopData)
 	go func() {
 		for topSolution := range in {
-			out <- NewTopSolutionData(topSolution)
+			out <- NewTopData(topSolution)
 		}
 		close(out)
 	}()
