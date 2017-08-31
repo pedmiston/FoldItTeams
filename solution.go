@@ -27,15 +27,17 @@ type Solution struct {
 	Actions   map[string]int
 	History   []string
 	Filename  string
+	Errors    []error
 }
 
-// readSolution extracts solution data from a solution file
-func readSolution(solutionFilename string) (solution Solution, err error) {
-	solution = Solution{Filename: solutionFilename}
+// NewSolution creates a new Solution from solution pdb file.
+func NewSolution(solutionFilename string) *Solution {
+	// The minimal Solution contains only the solution filename
+	solution := Solution{Filename: solutionFilename}
 
 	solutionFile, err := os.Open(solutionFilename)
 	if err != nil {
-		return solution, errors.New("Unable to open solution file: " + solutionFilename)
+		solution.Errors = []error{err}
 	}
 	defer solutionFile.Close()
 

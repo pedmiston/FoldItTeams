@@ -29,15 +29,17 @@ type tidyResult struct {
 	History [][]string
 }
 
-func extractTopSolutionData(scanner *bufio.Scanner, outputDir string) {
-	topSolutioner := readAllTopSolutionFiles(scanner)
-	tidySolutioner := tidyAllTopSolutions(topSolutioner)
+// ReadTopSolutions reads solution files from a scanner
+// and collects the results in the outputDir.
+func ReadTopSolutions(scanner *bufio.Scanner, outputDir string) {
+	topSolutionGen := readAllTopSolutions(scanner)
+	tidyResultGen := tidyAllTopSolutions(topSolutionGen)
 
 	scoresWriter := createWriter(outputDir, "scores")
 	actionsWriter := createWriter(outputDir, "actions")
 	historyWriter := createWriter(outputDir, "history")
 
-	for tidyResult := range tidySolutioner {
+	for tidyResult := range tidyResultGen {
 		for _, line := range tidyResult.Scores {
 			scoresWriter.Write(line)
 		}
@@ -50,20 +52,23 @@ func extractTopSolutionData(scanner *bufio.Scanner, outputDir string) {
 	}
 }
 
-func readAllTopSolutionFiles(scanner *bufio.Scanner) <-chan *TopSolution {
+// readAllTopSolutions loads a channel with TopSolutions
+// created from solution files.
+func readAllTopSolutions(scanner *bufio.Scanner) <-chan *TopSolution {
 	out := make(chan *TopSolution)
 	go func() {
 		for scanner.Scan() {
-			out <- readTopSolutionFile(scanner.Text())
+			out <- readTopSolution(scanner.Text())
 		}
 		close(out)
 	}()
 	return out
 }
 
-func readTopSolutionFile(name string) *TopSolution {
-	solution, err := readSolution(name)
-	rankType, rank, _ := readRankFromFilename(name)
+// readTopSolution creates a new TopSolution from a top solution file.
+func readTopSolution(name string) *TopSolution {
+	solution, _ := readSolution(name)
+	rankType, rank, _ := getRankFromFilename(name)
 	topSolution := &TopSolution{
 		Solution: solution,
 		RankType: rankType,
@@ -72,7 +77,8 @@ func readTopSolutionFile(name string) *TopSolution {
 	return topSolution
 }
 
-func readRankFromFilename(name string) (rankType string, rank int, err error) {
+// getRankFromFilename extracts rank and rank type from a solution filename.
+func getRankFromFilename(name string) (rankType string, rank int, err error) {
 	matches := reRankInfo.FindAllStringSubmatch(name, -1)
 	if len(matches) == 0 {
 		err = errors.New("Unable to read rank info from filename: " + name)
@@ -87,8 +93,8 @@ func readRankFromFilename(name string) (rankType string, rank int, err error) {
 	return
 }
 
-func tidyAllTopSolutions(in <-chan *TopSolution) <-chan tidyResult {
-	out := make(chan tidyResult)
+func tidyAllTopSolutions(in <-chan *TopSolution) <-chan *tidyResult {
+	out := make(chan *tidyResult)
 	go func() {
 		for topSolution := range in {
 			out <- tidyTopSolution(topSolution)
@@ -96,6 +102,53 @@ func tidyAllTopSolutions(in <-chan *TopSolution) <-chan tidyResult {
 		close(out)
 	}()
 	return out
+}
+
+func tidyTopSolution(topSolution *TopSolution) *tidyResult {
+	tidyResult := &tidyResult{
+		Scores:  topSolution.getScores(),
+		Actions: topSolution.getActions(),
+		History: topSolution.getHistory(),
+	}
+	return tidyResult
+}
+
+func (t *TopSolution) getScores() [][]string {
+	return [][]string{[]string{
+		strconv.Itoa(t.PuzzleID),
+		strconv.Itoa(t.UserID),
+		strconv.Itoa(t.GroupID),
+		strconv.FormatFloat(t.Score, 'f', -1, 64),
+		t.Filename,
+	}}
+}
+
+func (t *TopSolution) getActions() [][]string {
+	var row int
+	dataframe := make([][]string, len(t.Actions))
+	for action, count := range t.Actions {
+		dataframe[row] = []string{
+			strconv.Itoa(t.PuzzleID),
+			strconv.Itoa(t.UserID),
+			strconv.Itoa(t.GroupID),
+			strconv.FormatFloat(t.Score, 'f', -1, 64),
+			t.Filename,
+			action,
+			strconv.Itoa(count),
+		}
+		row++
+	}
+	return dataframe
+}
+
+func (t *TopSolution) getHistory() [][]string {
+	return [][]string{[]string{
+		strconv.Itoa(t.PuzzleID),
+		strconv.Itoa(t.UserID),
+		strconv.Itoa(t.GroupID),
+		strconv.FormatFloat(t.Score, 'f', -1, 64),
+		t.Filename,
+	}}
 }
 
 func createWriter(outputDir, dataType string) *csv.Writer {

@@ -36,19 +36,20 @@ func main() {
 	flag.Parse()
 
 	var input *os.File
+	var err error
 	if *pdbs != "" {
-		input, err := os.Open(*pdbs)
+		input, err = os.Open(*pdbs)
 		if err != nil {
 			log.Fatalln("Couldn't open input file")
 		}
 	} else {
-		input := os.Stdin
+		input = os.Stdin
 	}
 	scanner := bufio.NewScanner(input)
 
 	switch *pdbType {
 	case "top":
-		extractTopSolutionData(scanner, *outputDir)
+		ReadTopSolutions(scanner, *outputDir)
 	case "regular":
 		panic("Need to implement extractSolutionData")
 	default:
