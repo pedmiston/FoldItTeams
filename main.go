@@ -51,7 +51,7 @@ func main() {
 
 	switch *pdbType {
 	case "top":
-		ReadTopSolutions(scanner, *outputDir)
+		WriteTopData(scanner, *outputDir)
 	case "regular":
 		panic("Need to implement extractSolutionData")
 	default:
@@ -59,23 +59,23 @@ func main() {
 	}
 }
 
-func WriteTopSolutionData(scanner *bufio.Scanner, outputDir string) {
-	topSolutionGen := LoadTopSolutions(scanner)
-	tidyResultGen := TidyTopSolutions(topSolutionGen)
+func WriteTopData(scanner *bufio.Scanner, outputDir string) {
+	genTopSolution := loadTopSolutions(scanner)
+	genTopData := pushTopData(genTopSolution)
 
-	scoresWriter := createWriter(outputDir, "scores")
-	actionsWriter := createWriter(outputDir, "actions")
-	historyWriter := createWriter(outputDir, "history")
+	scoresWriter := newWriter(outputDir, "scores")
+	actionsWriter := newWriter(outputDir, "actions")
+	historyWriter := newWriter(outputDir, "history")
 
-	for tidyResult := range tidyResultGen {
-		for _, line := range tidyResult.Scores {
-			scoresWriter.Write(line)
+	for topData := range genTopData {
+		for _, record := range topData.Scores {
+			scoresWriter.Write(record)
 		}
-		for _, line := range tidyResult.Actions {
-			actionsWriter.Write(line)
+		for _, record := range topData.Actions {
+			actionsWriter.Write(record)
 		}
-		for _, line := range tidyResult.History {
-			historyWriter.Write(line)
+		for _, record := range topData.History {
+			historyWriter.Write(record)
 		}
 	}
 }
@@ -91,7 +91,7 @@ func loadTopSolutions(filenames *bufio.Scanner) <-chan *TopSolution {
 	return out
 }
 
-func exportTopSolutions(in <-chan *TopSolution) <-chan *TopSolutionData {
+func pushTopData(in <-chan *TopSolution) <-chan *TopSolutionData {
 	out := make(chan *TopSolutionData)
 	go func() {
 		for topSolution := range in {
@@ -102,7 +102,7 @@ func exportTopSolutions(in <-chan *TopSolution) <-chan *TopSolutionData {
 	return out
 }
 
-func createWriter(outputDir, dataType string) *csv.Writer {
+func newWriter(outputDir, dataType string) *csv.Writer {
 	outputDst := path.Join(outputDir, dataType+".csv")
 	outputFile, err := os.Open(outputDst)
 	if err != nil {

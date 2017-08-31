@@ -13,12 +13,6 @@ type TopSolution struct {
 	Rank     int
 }
 
-type TopSolutionData struct {
-	Scores  [][]string
-	Actions [][]string
-	History [][]string
-}
-
 var (
 	reRankInfo = regexp.MustCompile(
 		`solution_(?P<RankType>[a-z]+)_(?P<Rank>\d+)_\d+_\d+_\d+.ir_solution.pdb`)
@@ -40,54 +34,6 @@ func NewTopSolution(name string) *TopSolution {
 	}
 
 	return topSolution
-}
-
-func (t *TopSolution) getScores() [][]string {
-	return [][]string{[]string{
-		strconv.Itoa(t.PuzzleID),
-		strconv.Itoa(t.UserID),
-		strconv.Itoa(t.GroupID),
-		strconv.FormatFloat(t.Score, 'f', -1, 64),
-		t.Filename,
-	}}
-}
-
-func (t *TopSolution) getActions() [][]string {
-	var row int
-	dataframe := make([][]string, len(t.Actions))
-	for action, count := range t.Actions {
-		dataframe[row] = []string{
-			strconv.Itoa(t.PuzzleID),
-			strconv.Itoa(t.UserID),
-			strconv.Itoa(t.GroupID),
-			strconv.FormatFloat(t.Score, 'f', -1, 64),
-			t.Filename,
-			action,
-			strconv.Itoa(count),
-		}
-		row++
-	}
-	return dataframe
-}
-
-func (t *TopSolution) getHistory() [][]string {
-	return [][]string{[]string{
-		strconv.Itoa(t.PuzzleID),
-		strconv.Itoa(t.UserID),
-		strconv.Itoa(t.GroupID),
-		strconv.FormatFloat(t.Score, 'f', -1, 64),
-		t.Filename,
-	}}
-}
-
-func NewTopSolutionData(topSolution *TopSolution) *TopSolutionData {
-	topSolutionData := &TopSolutionData{
-		Scores:  topSolution.getScores(),
-		Actions: topSolution.getActions(),
-		History: topSolution.getHistory(),
-	}
-
-	return topSolutionData
 }
 
 // getRankFromFilename extracts rank and rank type from a solution filename.
