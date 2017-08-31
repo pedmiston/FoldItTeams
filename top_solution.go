@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/csv"
 	"errors"
 	"regexp"
 	"strconv"
@@ -34,6 +35,43 @@ func NewTopSolution(name string) *TopSolution {
 	}
 
 	return topSolution
+}
+
+func (t *TopSolution) writeScores(writer *csv.Writer) {
+	data := []string{
+		strconv.Itoa(t.PuzzleID),
+		strconv.Itoa(t.UserID),
+		strconv.Itoa(t.GroupID),
+		strconv.FormatFloat(t.Score, 'f', -1, 64),
+		t.RankType,
+		strconv.Itoa(t.Rank),
+		t.Filename,
+	}
+	writer.Write(data)
+}
+
+func (t *TopSolution) writeActions(writer *csv.Writer) {
+	var data []string
+	for action, count := range t.Actions {
+		data = []string{
+			t.Filename,
+			action,
+			strconv.Itoa(count),
+		}
+		writer.Write(data)
+	}
+}
+
+func (t *TopSolution) writeHistory(writer *csv.Writer) {
+	var data []string
+	for ix, id := range t.History {
+		data = []string{
+			t.Filename,
+			strconv.Itoa(ix),
+			id,
+		}
+		writer.Write(data)
+	}
 }
 
 // getRankFromFilename extracts rank and rank type from a solution filename.

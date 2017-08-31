@@ -31,7 +31,7 @@ type Solution struct {
 
 // NewSolution creates a new Solution from solution pdb file.
 func NewSolution(filename string) *Solution {
-	// The minimal Solution contains only the solution filename
+	// The minimum Solution contains only the solution filename
 	solution := &Solution{Filename: filename}
 
 	file, err := os.Open(filename)
@@ -102,7 +102,7 @@ func readPuzzleIDFromFilename(solutionFilename string) (puzzleID int, err error)
 	if len(puzzleIDMatch) != 2 {
 		return 0, errors.New("rePuzzleID not matched by " + solutionFilename)
 	}
-	// Ignoring conversion errors because the regexp only matches ints
+	// Ignoring conversion error because the regexp only matches ints
 	puzzleID, _ = strconv.Atoi(puzzleIDMatch[1])
 	return puzzleID, nil
 }

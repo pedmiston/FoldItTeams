@@ -15,7 +15,7 @@ var (
 )
 
 func TestGettingRankFromFilename(t *testing.T) {
-	_, rank, _ := readRankFromFilename(fullSolution)
+	_, rank, _ := getRankFromFilename(fullSolution)
 	if rank != 4 {
 		t.Error("Expected to extract rank=4 but got", rank)
 	}

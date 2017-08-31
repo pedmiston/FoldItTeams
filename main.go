@@ -39,13 +39,13 @@ func main() {
 
 	var input *os.File
 	var err error
-	if *pdbs != "" {
+	if *pdbs == "" {
+		input = os.Stdin
+	} else {
 		input, err = os.Open(*pdbs)
 		if err != nil {
 			log.Fatalln("Couldn't open input file")
 		}
-	} else {
-		input = os.Stdin
 	}
 	scanner := bufio.NewScanner(input)
 
@@ -53,30 +53,24 @@ func main() {
 	case "top":
 		WriteTopData(scanner, *outputDir)
 	case "regular":
-		panic("Need to implement extractSolutionData")
+		panic("Need to implement WriteRegularData")
 	default:
 		panic("unknown pdbType")
 	}
 }
 
-func WriteTopData(scanner *bufio.Scanner, outputDir string) {
-	genTopSolution := loadTopSolutions(scanner)
-	genTopData := pushTopData(genTopSolution)
+// WriteTopData writes data from top solution pdb files to the output dir.
+func WriteTopData(topSolutionFilenames *bufio.Scanner, outputDir string) {
+	genTopSolution := loadTopSolutions(topSolutionFilenames)
 
-	scoresWriter := newWriter(outputDir, "scores")
-	actionsWriter := newWriter(outputDir, "actions")
-	historyWriter := newWriter(outputDir, "history")
+	scoresWriter := newWriter(outputDir, "scores.csv")
+	actionsWriter := newWriter(outputDir, "actions.csv")
+	historyWriter := newWriter(outputDir, "history.csv")
 
-	for topData := range genTopData {
-		for _, record := range topData.Scores {
-			scoresWriter.Write(record)
-		}
-		for _, record := range topData.Actions {
-			actionsWriter.Write(record)
-		}
-		for _, record := range topData.History {
-			historyWriter.Write(record)
-		}
+	for topSolution := range genTopSolution {
+		topSolution.writeScores(scoresWriter)
+		topSolution.writeActions(actionsWriter)
+		topSolution.writeHistory(historyWriter)
 	}
 }
 
@@ -91,19 +85,8 @@ func loadTopSolutions(filenames *bufio.Scanner) <-chan *TopSolution {
 	return out
 }
 
-func pushTopData(in <-chan *TopSolution) <-chan *TopData {
-	out := make(chan *TopData)
-	go func() {
-		for topSolution := range in {
-			out <- NewTopData(topSolution)
-		}
-		close(out)
-	}()
-	return out
-}
-
 func newWriter(outputDir, dataType string) *csv.Writer {
-	outputDst := path.Join(outputDir, dataType+".csv")
+	outputDst := path.Join(outputDir, dataType)
 	outputFile, err := os.Open(outputDst)
 	if err != nil {
 		log.Fatalln("Can't open output file " + outputDst)
