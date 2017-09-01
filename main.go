@@ -63,9 +63,17 @@ func main() {
 func WriteTopData(topSolutionFilenames *bufio.Scanner, outputDir string) {
 	genTopSolution := loadTopSolutions(topSolutionFilenames)
 
-	scoresWriter := newWriter(outputDir, "scores.csv")
-	actionsWriter := newWriter(outputDir, "actions.csv")
-	historyWriter := newWriter(outputDir, "history.csv")
+	scoresFile, _ := os.Create(path.Join(outputDir, "scores.csv"))
+	defer scoresFile.Close()
+	scoresWriter := csv.NewWriter(scoresFile)
+
+	actionsFile, _ := os.Create(path.Join(outputDir, "actions.csv"))
+	defer actionsFile.Close()
+	actionsWriter := csv.NewWriter(actionsFile)
+
+	historyFile, _ := os.Create(path.Join(outputDir, "history.csv"))
+	defer historyFile.Close()
+	historyWriter := csv.NewWriter(historyFile)
 
 	for topSolution := range genTopSolution {
 		topSolution.writeScores(scoresWriter)
@@ -83,14 +91,4 @@ func loadTopSolutions(filenames *bufio.Scanner) <-chan *TopSolution {
 		close(out)
 	}()
 	return out
-}
-
-func newWriter(outputDir, dataType string) *csv.Writer {
-	outputDst := path.Join(outputDir, dataType)
-	outputFile, err := os.Create(outputDst)
-	if err != nil {
-		log.Fatalln("Can't open output file " + outputDst)
-	}
-	outputWriter := csv.NewWriter(outputFile)
-	return outputWriter
 }
