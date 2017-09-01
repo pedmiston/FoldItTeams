@@ -87,7 +87,7 @@ func loadTopSolutions(filenames *bufio.Scanner) <-chan *TopSolution {
 
 func newWriter(outputDir, dataType string) *csv.Writer {
 	outputDst := path.Join(outputDir, dataType)
-	outputFile, err := os.Open(outputDst)
+	outputFile, err := os.Create(outputDst)
 	if err != nil {
 		log.Fatalln("Can't open output file " + outputDst)
 	}
