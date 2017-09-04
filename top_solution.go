@@ -38,7 +38,7 @@ func NewTopSolution(name string) *TopSolution {
 	return topSolution
 }
 
-func (t *TopSolution) writeScores(writer *csv.Writer) {
+func (t *TopSolution) writeScoresTo(writer *csv.Writer) {
 	data := []string{
 		strconv.Itoa(t.PuzzleID),
 		strconv.Itoa(t.UserID),
@@ -55,7 +55,7 @@ func (t *TopSolution) writeScores(writer *csv.Writer) {
 	}
 }
 
-func (t *TopSolution) writeActions(writer *csv.Writer) {
+func (t *TopSolution) writeActionsTo(writer *csv.Writer) {
 	records := make([][]string, len(t.Actions))
 	var row int
 	for action, count := range t.Actions {
@@ -72,7 +72,7 @@ func (t *TopSolution) writeActions(writer *csv.Writer) {
 	}
 }
 
-func (t *TopSolution) writeHistory(writer *csv.Writer) {
+func (t *TopSolution) writeHistoryTo(writer *csv.Writer) {
 	records := make([][]string, len(t.History))
 	for ix, id := range t.History {
 		records[ix] = []string{
