@@ -15,7 +15,7 @@
       notify: clean up
 
     - name: Fetch puzzle info
-      fetch: src=~/{{ dst }}/puzzle-info.csv dest=./puzzle-info.csv
+      fetch: src=~/{{ dst }}/puzzle-info.csv dest=./puzzle-info.csv flat=yes
 
   handlers:
     - name: clean up
