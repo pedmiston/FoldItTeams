@@ -1,2 +1,0 @@
-#!/usr/bin/env bash
-find ~/fetch/ -maxdepth 1 -type d -name "solution_*" -exec stat {} --printf="{},%y\n" \; | awk 'BEGIN { OFS=","; print "dir", "last_modified" } { print $0 }' > $1

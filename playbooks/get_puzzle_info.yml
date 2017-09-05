@@ -11,15 +11,11 @@
       file: path=~/{{ dst }} state=directory
 
     - name: Find available puzzles
-      script: scripts/find-available-puzzles ~/{{ dst }}/available_puzzles.csv
-      notify: clean up
-
-    - name: Find when puzzles were last modified
-      script: scripts/find-when-puzzles-last-modified ~/{{ dst }}/puzzles_last_modified.csv
+      script: scripts/puzzle-info ~/{{ dst }}/puzzle-info.csv
       notify: clean up
 
     - name: Fetch puzzle info
-      synchronize: src=~/{{ dst }} dest=./ mode=pull
+      fetch: src=~/{{ dst }}/puzzle-info.csv dest=./puzzle-info.csv
 
   handlers:
     - name: clean up
