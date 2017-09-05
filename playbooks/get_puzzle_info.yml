@@ -10,9 +10,6 @@
     - name: Ensure dst exists on host
       file: path=~/{{ dst }} state=directory
 
-    - name: Ensure dst exists on control
-      local_action: file path={{ dst }} state=directory
-
     - name: Find available puzzles
       script: scripts/find-available-puzzles ~/{{ dst }}/available_puzzles.csv
       notify: clean up
@@ -22,8 +19,8 @@
       notify: clean up
 
     - name: Fetch puzzle info
-      synchronize: src=~/{{ dst }} dest={{ dst }} mode=pull
+      synchronize: src=~/{{ dst }} dest=./ mode=pull
 
   handlers:
     - name: clean up
-      shell: rm -rf ~/{{ dst }}
+      file: path=~/{{ dst }} state=absent
