@@ -1,0 +1,29 @@
+---
+- hosts: analytics.fold.it
+  remote_user: pierce
+  force_handlers: yes
+
+  vars:
+    - dst: puzzle-info
+
+  tasks:
+    - name: Ensure dst exists on host
+      file: path=~/{{ dst }} state=directory
+
+    - name: Ensure dst exists on control
+      local_action: file path={{ dst }} state=directory
+
+    - name: Find available puzzles
+      script: scripts/find-available-puzzles ~/{{ dst }}/available_puzzles.csv
+      notify: clean up
+
+    - name: Find when puzzles were last modified
+      script: scripts/find-when-puzzles-last-modified ~/{{ dst }}/puzzles_last_modified.csv
+      notify: clean up
+
+    - name: Fetch puzzle info
+      synchronize: src=~/{{ dst }} dest={{ dst }} mode=pull
+
+  handlers:
+    - name: clean up
+      shell: rm -rf ~/{{ dst }}
