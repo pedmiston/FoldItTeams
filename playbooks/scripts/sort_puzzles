@@ -1,0 +1,2 @@
+#!/usr/bin/env bash
+find ~/fetch/ -maxdepth 1 -name "solution_*" -exec stat {} --printf="{}\t%y\n" \;

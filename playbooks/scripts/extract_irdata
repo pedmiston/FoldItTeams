@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# Find all pdb files selecting only lines that start with /^IRDATA/
+find . -name "*.pdb" \
+    -exec sed -i.irdata -n '/^IRDATA/p' {} \; \
+    -exec echo {}.irdata >> irdata.txt \;
+# Compress the results into a zip file
+cat irdata.txt | xargs zip -r irdata.zip
+# Clean up
+cat irdata.txt | xargs rm
+rm irdata.txt
