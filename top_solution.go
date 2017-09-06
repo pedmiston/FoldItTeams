@@ -1,9 +1,7 @@
 package main
 
 import (
-	"encoding/csv"
 	"errors"
-	"log"
 	"regexp"
 	"strconv"
 )
@@ -36,55 +34,6 @@ func NewTopSolution(name string) *TopSolution {
 	}
 
 	return topSolution
-}
-
-func (t *TopSolution) writeScoresTo(writer *csv.Writer) {
-	data := []string{
-		strconv.Itoa(t.PuzzleID),
-		strconv.Itoa(t.UserID),
-		strconv.Itoa(t.GroupID),
-		strconv.FormatFloat(t.Score, 'f', -1, 64),
-		t.RankType,
-		strconv.Itoa(t.Rank),
-		t.Filename,
-	}
-	writer.Write(data)
-	writer.Flush()
-	if err := writer.Error(); err != nil {
-		log.Fatalln(err)
-	}
-}
-
-func (t *TopSolution) writeActionsTo(writer *csv.Writer) {
-	records := make([][]string, len(t.Actions))
-	var row int
-	for action, count := range t.Actions {
-		records[row] = []string{
-			t.Filename,
-			action,
-			strconv.Itoa(count),
-		}
-		row++
-	}
-	writer.WriteAll(records)
-	if err := writer.Error(); err != nil {
-		log.Fatalln(err)
-	}
-}
-
-func (t *TopSolution) writeHistoryTo(writer *csv.Writer) {
-	records := make([][]string, len(t.History))
-	for ix, id := range t.History {
-		records[ix] = []string{
-			t.Filename,
-			strconv.Itoa(ix),
-			id,
-		}
-	}
-	writer.WriteAll(records)
-	if err := writer.Error(); err != nil {
-		log.Fatalln(err)
-	}
 }
 
 // getRankFromFilename extracts rank and rank type from a solution filename.

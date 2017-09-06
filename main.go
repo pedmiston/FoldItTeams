@@ -1,112 +1,121 @@
 /*foldit extracts data from FoldIt solution files.
 
 Usage:
-	foldit -pdbs=paths.txt -pdbType=top -outputDir=top
+	foldit -paths=paths.txt -db=foldit.sqlite
 
 Args:
-	pdbs: A file containing paths to pdb files. If a file is not provided,
+	paths: A file containing paths to solution files. If a file is not provided,
 		paths are expected via stdin.
-	pdbType: Type of solution file. The two types of solution files are
-		"regular" and "top". A top solution is just a regular solution
-		with ranking data embedded in the filename.
-	outputDir: Where to write the data. Since each solution generates multiple
-		output files, the output must be a directory.
+	db: Location of a sqlite database containing the extracted data.
 */
 package main
 
 import (
 	"bufio"
-	"encoding/csv"
+	"database/sql"
 	"flag"
 	"log"
 	"os"
-	"path"
+
+	_ "github.com/mattn/go-sqlite3"
 )
 
 var (
-	pdbs, pdbType, outputDir *string
-	scanner                  *bufio.Scanner
+	db *sql.DB
 )
 
 func main() {
-	pdbs = flag.String("pdbs", "",
+	paths := flag.String("pdbs", "",
 		"A file containing paths to files to process.")
-	pdbType = flag.String("pdbType", "",
-		"Type of solution file. Can be 'top' or 'regular'.")
-	outputDir = flag.String("outputDir", "",
-		"Destination for output files.")
+	dbName := flag.String("db", "",
+		"The name of the sqlite database that will contain the extracted data.")
 	flag.Parse()
 
-	var input *os.File
+	// Create a solution file path scanner
+	var src *os.File
 	var err error
-	if *pdbs == "" {
-		input = os.Stdin
+	if *paths == "" {
+		src = os.Stdin
 	} else {
-		input, err = os.Open(*pdbs)
+		src, err = os.Open(*paths)
 		if err != nil {
-			log.Fatalln("Couldn't open input file")
+			log.Fatal(err)
 		}
 	}
-	scanner := bufio.NewScanner(input)
+	defer src.Close()
+	scanner := bufio.NewScanner(src)
 
-	switch *pdbType {
-	case "top":
-		WriteTopData(scanner, *outputDir)
-	case "regular":
-		panic("Need to implement WriteRegularData")
-	default:
-		panic("unknown pdbType")
+	// Create an interface to the DB
+	if *dbName == "" {
+		*dbName = "foldit.db"
+	}
+	os.Remove(*dbName)
+	db, err = sql.Open("sqlite3", *dbName)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer db.Close()
+
+	// Create the tables
+	sqlStmt := `
+	create table scores(filename text not null primary key, puzzle_id integer, user_id integer, group_id integer, score float);
+	create table actions(filename text not null primary key, action text, count integer);
+	create table history(filename text not null primary key, ix integer, id text);
+	`
+	_, err = db.Exec(sqlStmt)
+	if err != nil {
+		log.Printf("%q: %s\n", err, sqlStmt)
+		return
+	}
+
+	ExtractSolutionData(scanner, db)
+}
+
+// ExtractSolutionData extracts data from pdb files and inserts it into a db.
+func ExtractSolutionData(paths *bufio.Scanner, db *sql.DB) {
+	var ch chan *Solution
+
+	// Load solutions in a chan
+	ch = loadSolutions(paths)
+
+	for solution := range ch {
+		tx, err := db.Begin()
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		stmtScores := solution.prepareScores(tx)
+		stmtActions := solution.prepareActions(tx)
+		stmtHistory := solution.prepareHistory(tx)
+
+		stmtScores.Exec(solution.getScores())
+
+		for _, d := range solution.getActions() {
+			stmtActions.Exec(d)
+		}
+
+		for _, d := range solution.getHistory() {
+			stmtHistory.Exec(d)
+		}
+
+		err = tx.Commit()
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		stmtScores.Close()
+		stmtActions.Close()
+		stmtHistory.Close()
 	}
 }
 
-// WriteTopData writes data from top ranked solutions to the output dir.
-func WriteTopData(filenames *bufio.Scanner, outputDir string) {
-	genTopSolution := loadTopSolutions(filenames)
-
-	scoresFile := createOutputFile(outputDir, "scores.csv")
-	defer scoresFile.Close()
-
-	actionsFile := createOutputFile(outputDir, "actions.csv")
-	defer actionsFile.Close()
-
-	historyFile := createOutputFile(outputDir, "history.csv")
-	defer historyFile.Close()
-
-	scoresWriter, actionsWriter, historyWriter := createWriters(
-		scoresFile, actionsFile, historyFile)
-
-	// Pull topSolutions out of the chan and write each one
-	for topSolution := range genTopSolution {
-		topSolution.writeScoresTo(scoresWriter)
-		topSolution.writeActionsTo(actionsWriter)
-		topSolution.writeHistoryTo(historyWriter)
-	}
-}
-
-func loadTopSolutions(filenames *bufio.Scanner) <-chan *TopSolution {
-	out := make(chan *TopSolution)
+func loadSolutions(in *bufio.Scanner) chan *Solution {
+	out := make(chan *Solution)
 	go func() {
-		for filenames.Scan() {
-			out <- NewTopSolution(filenames.Text())
+		for in.Scan() {
+			out <- NewSolution(in.Text())
 		}
 		close(out)
 	}()
 	return out
-}
-
-func createOutputFile(outputDir, filename string) *os.File {
-	filePath := path.Join(outputDir, filename)
-	file, err := os.Create(filePath)
-	if err != nil {
-		log.Fatalf("Unable to create output file %s: %s\n", filePath, err)
-	}
-	return file
-}
-
-func createWriters(writers ...*os.File) []*csv.Writer {
-	var csvWriters = []*csv.Writer{}
-	for i, f := range writers {
-		csvWriters[i] = csv.NewWriter(f)
-	}
-	return csvWriters
 }

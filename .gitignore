@@ -1,4 +1,5 @@
 *.html
+*.db
 
 .env
 .vault_pass.txt

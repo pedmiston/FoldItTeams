@@ -2,7 +2,10 @@ package main
 
 import (
 	"bufio"
+	"database/sql"
 	"errors"
+	"fmt"
+	"log"
 	"os"
 	"regexp"
 	"strconv"
@@ -10,10 +13,13 @@ import (
 )
 
 var (
-	rePuzzleID  = regexp.MustCompile(`solution_(?P<PuzzleID>\d+)/`)
-	rePDL       = regexp.MustCompile(`^IRDATA PDL`)
-	reTimestamp = regexp.MustCompile(`^IRDATA TIMESTAMP`)
-	reHistory   = regexp.MustCompile(`^IRDATA HISTORY`)
+	scoresFields  = []string{"filename", "puzzle_id", "user_id", "group_id", "score"}
+	actionsFields = []string{"filename", "action", "count"}
+	historyFields = []string{"filename", "ix", "id"}
+	rePuzzleID    = regexp.MustCompile(`solution_(?P<PuzzleID>\d+)/`)
+	rePDL         = regexp.MustCompile(`^IRDATA PDL`)
+	reTimestamp   = regexp.MustCompile(`^IRDATA TIMESTAMP`)
+	reHistory     = regexp.MustCompile(`^IRDATA HISTORY`)
 )
 
 // A Solution is a collection of data extracted from a solution file.
@@ -95,6 +101,72 @@ func (s *Solution) addActions(actions []string) {
 			}
 		}
 	}
+}
+
+func (s *Solution) prepare(tx *sql.Tx, tblName string, fields []string) *sql.Stmt {
+	q := make([]string, len(fields))
+	for i := range fields {
+		q[i] = "?"
+	}
+
+	msg := fmt.Sprintf("insert into %s(%s) values(%s)",
+		tblName, strings.Join(fields, ","), strings.Join(q, ","))
+
+	stmt, err := tx.Prepare(msg)
+	if err != nil {
+		log.Fatalf("%s:\n%s", err, msg)
+	}
+
+	return stmt
+}
+
+func (s *Solution) prepareScores(tx *sql.Tx) *sql.Stmt {
+	return s.prepare(tx, "scores", scoresFields)
+}
+
+func (s *Solution) prepareActions(tx *sql.Tx) *sql.Stmt {
+	return s.prepare(tx, "actions", actionsFields)
+}
+
+func (s *Solution) prepareHistory(tx *sql.Tx) *sql.Stmt {
+	return s.prepare(tx, "history", historyFields)
+}
+
+func (s *Solution) getScores() (values []string) {
+	values = []string{
+		s.Filename,
+		strconv.Itoa(s.PuzzleID),
+		strconv.Itoa(s.UserID),
+		strconv.Itoa(s.GroupID),
+		strconv.FormatFloat(s.Score, 'f', -1, 64),
+	}
+	return
+}
+
+func (s *Solution) getActions() [][]string {
+	records := make([][]string, len(s.Actions))
+	var row int
+	for action, count := range s.Actions {
+		records[row] = []string{
+			s.Filename,
+			action,
+			strconv.Itoa(count),
+		}
+		row++
+	}
+	return records
+}
+
+func (s *Solution) getHistory() [][]string {
+	records := make([][]string, len(s.History))
+	for ix, id := range s.History {
+		records[ix] = []string{
+			s.Filename,
+			strconv.Itoa(ix),
+			id,
+		}
+	}
+	return records
 }
 
 func readPuzzleIDFromFilename(solutionFilename string) (puzzleID int, err error) {
