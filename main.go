@@ -1,12 +1,12 @@
 /*foldit extracts data from FoldIt solution files.
 
 Usage:
-	foldit -paths=solution-filepaths.txt -dst=foldit.sqlite
+	foldit -paths=solution-filepaths.txt -dest=foldit.sqlite
 
 Args:
 	paths: A file containing paths to solution files. If a file is not provided,
 		paths are expected via stdin.
-	dst: Location of a sqlite database containing the extracted data.
+	dest: Location of a sqlite database containing the extracted data.
 */
 package main
 
@@ -14,20 +14,19 @@ import (
 	"bufio"
 	"database/sql"
 	"flag"
+	"fmt"
 	"log"
 	"os"
 
 	_ "github.com/mattn/go-sqlite3"
 )
 
-var (
-	db *sql.DB
-)
+var db *sql.DB
 
 func main() {
 	paths := flag.String("paths", "",
 		"A file containing paths to files to process.")
-	dst := flag.String("dst", "", "Location of a sqlite database")
+	dest := flag.String("dest", "", "Location of a sqlite database")
 	flag.Parse()
 
 	// Create a solution file path scanner
@@ -45,40 +44,31 @@ func main() {
 	scanner := bufio.NewScanner(src)
 
 	// Create an interface to the DB
-	if *dst == "" {
-		*dst = "foldit.db"
+	if *dest == "" {
+		*dest = "foldit.db"
 	}
-	os.Remove(*dst)
-	db, err = sql.Open("sqlite3", *dst)
+	os.Remove(*dest)
+	db, err = sql.Open("sqlite3", *dest)
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer db.Close()
 
-	// Create the tables
-	sqlStmt := `
-	create table scores(filename text not null primary key, puzzle_id integer, user_id integer, group_id integer, score float);
-	create table actions(filename text not null primary key, action text, count integer);
-	create table history(filename text not null primary key, ix integer, id text);
-	create table ranks(filename text not null primary key, type text, rank integer);
-	`
-	_, err = db.Exec(sqlStmt)
+	err = createTables()
 	if err != nil {
-		log.Printf("%q: %s\n", err, sqlStmt)
-		return
+		log.Fatal(err)
 	}
-
-	ExtractSolutionData(scanner)
+	extractSolutionData(scanner)
 }
 
-// ExtractSolutionData extracts data from pdb files and inserts it into a db.
-func ExtractSolutionData(paths *bufio.Scanner) {
+// extractSolutionData extracts data from pdb files and inserts it into a db.
+func extractSolutionData(paths *bufio.Scanner) {
 	// Construct the pipeline
 	solutionGen, nLoaded := loadSolutions(paths)
-	resultsGen := writeSolutions(solutionGen)
-	// Wait for results
+	finished := writeSolutions(solutionGen, nLoaded)
+	// Drain channel
 	for i := 0; i < nLoaded; i++ {
-		<-resultsGen
+		<-finished
 	}
 }
 
@@ -93,62 +83,72 @@ func loadSolutions(in *bufio.Scanner) (out chan *Solution, n int) {
 	return out, n
 }
 
-func writeSolutions(in chan *Solution) chan struct{} {
-	out := make(chan struct{})
-	for solution := range in {
+func writeSolutions(in chan *Solution, n int) (out chan bool) {
+	out = make(chan bool)
+	for i := 0; i < n; i++ {
+		solution := <-in
 		go func(s *Solution) {
-			writeSolution(s)
-			out <- struct{}{}
+			err := writeSolution(s)
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "writing solution: %v\n%v", err, s.Filename)
+			}
+			out <- true
 		}(solution)
 	}
 	return out
 }
 
 func writeSolution(solution *Solution) error {
-	// Prepate the transaction with statements
+	// Prepare the transaction
 	tx, err := db.Begin()
 	if err != nil {
 		return err
 	}
 
-	stmtScores, err := prepareScoresTx(tx)
+	// Prepare the statements in this transaction
+	// TODO
+	stmtScores, err := prepareStatement(tx, "scores", scoresFields)
 	if err != nil {
-		return err
-	}
-	defer stmtScores.Close()
-	err = solution.executeScores(stmtScores)
-	if err != nil {
-		return err
-	}
-
-	stmtActions, err := prepareActionsTx(tx)
-	if err != nil {
-		return err
-	}
-	defer stmtActions.Close()
-	err = solution.executeActions(stmtActions)
-	if err != nil {
-		return err
+		fmt.Fprintf(os.Stderr, "preparing scores statement: %v", err)
+	} else {
+		defer stmtScores.Close()
+		err = solution.executeScores(stmtScores)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "executing scores statement: %v", err)
+		}
 	}
 
-	stmtHistory, err := prepareHistoryTx(tx)
+	stmtActions, err := prepareStatement(tx, "actions", actionsFields)
 	if err != nil {
-		return err
-	}
-	defer stmtHistory.Close()
-	err = solution.executeHistory(stmtHistory)
-	if err != nil {
-		return err
+		fmt.Fprintf(os.Stderr, "preparting actions statement: %v", err)
+	} else {
+		defer stmtActions.Close()
+		err = solution.executeActions(stmtActions)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "executing actions statement: %v", err)
+		}
 	}
 
-	stmtRank, err := prepareRankTx(tx)
+	stmtHistory, err := prepareStatement(tx, "history", historyFields)
 	if err != nil {
-		return err
+		fmt.Fprintf(os.Stderr, "preparing history statement: %v", err)
+	} else {
+		defer stmtHistory.Close()
+		err = solution.executeHistory(stmtHistory)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "executing history statement: %v", err)
+		}
 	}
-	defer stmtRank.Close()
-	err = solution.executeRank(stmtRank)
+
+	stmtRank, err := prepareStatement(tx, "ranks", rankFields)
 	if err != nil {
-		return err
+		fmt.Fprintf(os.Stderr, "preparing rank statement: %v", err)
+	} else {
+		defer stmtRank.Close()
+		err = solution.executeRank(stmtRank)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "executing rank statement: %v", err)
+		}
 	}
 
 	err = tx.Commit()

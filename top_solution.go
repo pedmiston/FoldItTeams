@@ -6,35 +6,8 @@ import (
 	"strconv"
 )
 
-// A TopSolution is a solution with ranking information
-type TopSolution struct {
-	*Solution
-	RankType string
-	Rank     int
-}
-
-var (
-	reRankInfo = regexp.MustCompile(
-		`solution_(?P<RankType>[a-z]+)_(?P<Rank>\d+)_\d+_\d+_\d+.ir_solution.pdb`)
-)
-
-// NewTopSolution creates a new TopSolution from a top solution pdb file.
-func NewTopSolution(name string) *TopSolution {
-	solution := NewSolution(name)
-	rankType, rank, err := getRankFromFilename(name)
-
-	if err != nil {
-		solution.Errors = append(solution.Errors, err)
-	}
-
-	topSolution := &TopSolution{
-		Solution: solution,
-		RankType: rankType,
-		Rank:     rank,
-	}
-
-	return topSolution
-}
+var reRankInfo = regexp.MustCompile(
+	`solution_(?P<RankType>[a-z]+)_(?P<Rank>\d+)_\d+_\d+_\d+.ir_solution.pdb`)
 
 // getRankFromFilename extracts rank and rank type from a solution filename.
 func getRankFromFilename(name string) (rankType string, rank int, err error) {

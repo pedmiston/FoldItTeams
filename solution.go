@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"database/sql"
 	"errors"
-	"fmt"
 	"os"
 	"regexp"
 	"strconv"
@@ -113,39 +112,6 @@ func (s *Solution) addActions(actions []string) {
 	}
 }
 
-func prepareTx(tx *sql.Tx, tblName string, fields []string) (*sql.Stmt, error) {
-	q := make([]string, len(fields))
-	for i := range fields {
-		q[i] = "?"
-	}
-
-	msg := fmt.Sprintf("insert into %s(%s) values(%s)",
-		tblName, strings.Join(fields, ","), strings.Join(q, ","))
-
-	stmt, err := tx.Prepare(msg)
-	if err != nil {
-		return nil, err
-	}
-
-	return stmt, nil
-}
-
-func prepareScoresTx(tx *sql.Tx) (*sql.Stmt, error) {
-	return prepareTx(tx, "scores", scoresFields)
-}
-
-func prepareActionsTx(tx *sql.Tx) (*sql.Stmt, error) {
-	return prepareTx(tx, "actions", actionsFields)
-}
-
-func prepareHistoryTx(tx *sql.Tx) (*sql.Stmt, error) {
-	return prepareTx(tx, "history", historyFields)
-}
-
-func prepareRankTx(tx *sql.Tx) (*sql.Stmt, error) {
-	return prepareTx(tx, "ranks", rankFields)
-}
-
 func (s *Solution) executeScores(stmt *sql.Stmt) error {
 	_, err := stmt.Exec(
 		s.Filename,
@@ -181,10 +147,8 @@ func (s *Solution) executeRank(stmt *sql.Stmt) error {
 	if s.RankType != "" {
 		_, err := stmt.Exec(
 			s.Filename,
-			s.PuzzleID,
-			s.UserID,
-			s.GroupID,
-			s.Score,
+			s.RankType,
+			s.Rank,
 		)
 		return err
 	}
