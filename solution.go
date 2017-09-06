@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"log"
 	"os"
 	"regexp"
 	"strconv"
@@ -13,13 +12,15 @@ import (
 )
 
 var (
-	scoresFields  = []string{"filename", "puzzle_id", "user_id", "group_id", "score"}
+	rePuzzleID   = regexp.MustCompile(`solution_(?P<PuzzleID>\d+)/`)
+	rePDL        = regexp.MustCompile(`^IRDATA PDL`)
+	reTimestamp  = regexp.MustCompile(`^IRDATA TIMESTAMP`)
+	reHistory    = regexp.MustCompile(`^IRDATA HISTORY`)
+	scoresFields = []string{"filename", "puzzle_id", "user_id",
+		"group_id", "score"}
 	actionsFields = []string{"filename", "action", "count"}
 	historyFields = []string{"filename", "ix", "id"}
-	rePuzzleID    = regexp.MustCompile(`solution_(?P<PuzzleID>\d+)/`)
-	rePDL         = regexp.MustCompile(`^IRDATA PDL`)
-	reTimestamp   = regexp.MustCompile(`^IRDATA TIMESTAMP`)
-	reHistory     = regexp.MustCompile(`^IRDATA HISTORY`)
+	rankFields    = []string{"filename", "type", "rank"}
 )
 
 // A Solution is a collection of data extracted from a solution file.
@@ -33,6 +34,8 @@ type Solution struct {
 	History   []string
 	Filename  string
 	Errors    []error
+	RankType  string
+	Rank      int
 }
 
 // NewSolution creates a new Solution from solution pdb file.
@@ -65,6 +68,13 @@ func NewSolution(filename string) *Solution {
 			solution.History = strings.Split(strings.Split(line, " ")[2:][0], ",")
 		}
 	}
+
+	rankType, rank, err := getRankFromFilename(filename)
+	if err != nil {
+		solution.Errors = append(solution.Errors, err)
+	}
+	solution.RankType = rankType
+	solution.Rank = rank
 
 	return solution
 }
@@ -103,7 +113,7 @@ func (s *Solution) addActions(actions []string) {
 	}
 }
 
-func (s *Solution) prepare(tx *sql.Tx, tblName string, fields []string) *sql.Stmt {
+func prepareTx(tx *sql.Tx, tblName string, fields []string) (*sql.Stmt, error) {
 	q := make([]string, len(fields))
 	for i := range fields {
 		q[i] = "?"
@@ -114,59 +124,71 @@ func (s *Solution) prepare(tx *sql.Tx, tblName string, fields []string) *sql.Stm
 
 	stmt, err := tx.Prepare(msg)
 	if err != nil {
-		log.Fatalf("%s:\n%s", err, msg)
+		return nil, err
 	}
 
-	return stmt
+	return stmt, nil
 }
 
-func (s *Solution) prepareScores(tx *sql.Tx) *sql.Stmt {
-	return s.prepare(tx, "scores", scoresFields)
+func prepareScoresTx(tx *sql.Tx) (*sql.Stmt, error) {
+	return prepareTx(tx, "scores", scoresFields)
 }
 
-func (s *Solution) prepareActions(tx *sql.Tx) *sql.Stmt {
-	return s.prepare(tx, "actions", actionsFields)
+func prepareActionsTx(tx *sql.Tx) (*sql.Stmt, error) {
+	return prepareTx(tx, "actions", actionsFields)
 }
 
-func (s *Solution) prepareHistory(tx *sql.Tx) *sql.Stmt {
-	return s.prepare(tx, "history", historyFields)
+func prepareHistoryTx(tx *sql.Tx) (*sql.Stmt, error) {
+	return prepareTx(tx, "history", historyFields)
 }
 
-func (s *Solution) getScores() (values []string) {
-	values = []string{
+func prepareRankTx(tx *sql.Tx) (*sql.Stmt, error) {
+	return prepareTx(tx, "ranks", rankFields)
+}
+
+func (s *Solution) executeScores(stmt *sql.Stmt) error {
+	_, err := stmt.Exec(
 		s.Filename,
-		strconv.Itoa(s.PuzzleID),
-		strconv.Itoa(s.UserID),
-		strconv.Itoa(s.GroupID),
-		strconv.FormatFloat(s.Score, 'f', -1, 64),
-	}
-	return
+		s.PuzzleID,
+		s.UserID,
+		s.GroupID,
+		s.Score,
+	)
+	return err
 }
 
-func (s *Solution) getActions() [][]string {
-	records := make([][]string, len(s.Actions))
-	var row int
+func (s *Solution) executeActions(stmt *sql.Stmt) error {
 	for action, count := range s.Actions {
-		records[row] = []string{
-			s.Filename,
-			action,
-			strconv.Itoa(count),
+		_, err := stmt.Exec(s.Filename, action, count)
+		if err != nil {
+			return err
 		}
-		row++
 	}
-	return records
+	return nil
 }
 
-func (s *Solution) getHistory() [][]string {
-	records := make([][]string, len(s.History))
+func (s *Solution) executeHistory(stmt *sql.Stmt) error {
 	for ix, id := range s.History {
-		records[ix] = []string{
-			s.Filename,
-			strconv.Itoa(ix),
-			id,
+		_, err := stmt.Exec(s.Filename, ix, id)
+		if err != nil {
+			return err
 		}
 	}
-	return records
+	return nil
+}
+
+func (s *Solution) executeRank(stmt *sql.Stmt) error {
+	if s.RankType != "" {
+		_, err := stmt.Exec(
+			s.Filename,
+			s.PuzzleID,
+			s.UserID,
+			s.GroupID,
+			s.Score,
+		)
+		return err
+	}
+	return nil
 }
 
 func readPuzzleIDFromFilename(solutionFilename string) (puzzleID int, err error) {
