@@ -1,0 +1,34 @@
+*.html
+*.db
+
+.env
+.vault_pass.txt
+
+puzzle-info.csv
+new-puzzle-id
+data-raw/top/
+data-raw/top.json
+
+available_solutions.txt
+solutions_to_process.txt
+demo-scripts/
+example-puzzles/
+
+# python
+*.pyc
+__pycache__/
+*.retry
+*.egg-info/
+
+# R
+.Rproj.user
+.Rhistory
+.RData
+
+
+
+# os
+.DS_Store
+
+# editor
+*.swp
