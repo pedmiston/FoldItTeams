@@ -16,8 +16,6 @@ import (
 	"flag"
 	"log"
 	"os"
-
-	_ "github.com/mattn/go-sqlite3"
 )
 
 func main() {
@@ -47,6 +45,9 @@ func main() {
 	solutions, n := loadSolutions(scanner)
 
 	for i := 0; i < n; i++ {
-		s <- solutions
+		s := <-solutions
+		if err := encoder.Encode(s); err != nil {
+			log.Println(err)
+		}
 	}
 }

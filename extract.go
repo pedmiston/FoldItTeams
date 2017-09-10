@@ -2,6 +2,8 @@ package main
 
 import (
 	"bufio"
+	"fmt"
+	"os"
 
 	"github.com/pedmiston/foldit/solution"
 )
@@ -17,7 +19,7 @@ func loadSolutions(in *bufio.Scanner) (out chan *solution.Solution, n int) {
 			tokens <- struct{}{}
 			s, err := solution.New(path)
 			if err != nil {
-			  fmt.Fprintf(os.Stderr, "error loading solution: %s", path)
+				fmt.Fprintf(os.Stderr, "error loading solution: %s", path)
 			}
 			<-tokens
 			out <- s
@@ -25,8 +27,4 @@ func loadSolutions(in *bufio.Scanner) (out chan *solution.Solution, n int) {
 		n++
 	}
 	return out, n
-}
-
-func writeSolutions(in chan *solution.Solution, n int) {
-  for
 }
