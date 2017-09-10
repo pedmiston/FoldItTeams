@@ -8,23 +8,25 @@ import (
 	"github.com/pedmiston/foldit/solution"
 )
 
+func loadSolutions(in *bufio.Scanner) (out chan *solution.Solution, n int) {
+	out = make(chan *solution.Solution)
+	for in.Scan() {
+		go readSolution(in.Text(), out)
+		n++
+	}
+	return out, n
+}
+
 // tokens is a counting semaphore used to
 // enforce a limit of 20 concurrent goroutines
 var tokens = make(chan struct{}, 20)
 
-func loadSolutions(in *bufio.Scanner) (out chan *solution.Solution, n int) {
-	out = make(chan *solution.Solution)
-	for in.Scan() {
-		go func(path string) {
-			tokens <- struct{}{}
-			s, err := solution.New(path)
-			if err != nil {
-				fmt.Fprintf(os.Stderr, "error loading solution: %s", path)
-			}
-			<-tokens
-			out <- s
-		}(in.Text())
-		n++
+func readSolution(path string, dst chan *solution.Solution) {
+	tokens <- struct{}{} // obtain token
+	s, err := solution.New(path)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "error loading solution %s: %v", path, err)
 	}
-	return out, n
+	dst <- s
+	<-tokens // release token
 }
