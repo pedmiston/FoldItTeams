@@ -3,6 +3,7 @@ package solution
 import (
 	"bufio"
 	"errors"
+	"fmt"
 	"os"
 	"regexp"
 	"strconv"
@@ -42,7 +43,7 @@ func New(filename string) (s *Solution, err error) {
 
 	file, err := os.Open(filename)
 	if err != nil {
-		return nil, err
+		return s, err
 	}
 	defer file.Close()
 
@@ -71,7 +72,7 @@ func New(filename string) (s *Solution, err error) {
 		}
 
 		if err != nil {
-			return nil, err
+			return s, err
 		}
 	}
 
@@ -80,31 +81,40 @@ func New(filename string) (s *Solution, err error) {
 
 func (s *Solution) extractSolutionID(line string) (err error) {
 	s.SolutionID, err = strconv.Atoi(reSID.FindStringSubmatch(line)[1])
-	return err
+	if err != nil {
+		return fmt.Errorf("extracting solution id: %v", err)
+	}
+	return nil
 }
 
 func (s *Solution) extractPuzzleID(line string) (err error) {
 	s.PuzzleID, err = strconv.Atoi(rePID.FindStringSubmatch(line)[1])
-	return err
+	if err != nil {
+		return fmt.Errorf("extracting puzzle id: %v", err)
+	}
+	return nil
 }
 
 func (s *Solution) extractScore(line string) (err error) {
 	s.Score, err = strconv.ParseFloat(reScore.FindStringSubmatch(line)[1], 64)
-	return err
+	if err != nil {
+		return fmt.Errorf("extracting score: %v", err)
+	}
+	return nil
 }
 
 func (s *Solution) extractTimestamp(line string) (err error) {
 	timeint, err := strconv.ParseInt(reTimestamp.FindStringSubmatch(line)[1], 10, 64)
 	if err != nil {
-		return err
+		return fmt.Errorf("extracting timestamp: %v", err)
 	}
 	s.Timestamp = time.Unix(timeint, 0)
-	return
+	return nil
 }
 
 func (s *Solution) extractHistory(line string) (err error) {
 	if s.History != nil {
-		return errors.New("attempting to overwrite s.History")
+		return errors.New("overwriting solution history")
 	}
 	s.History = strings.Split(reHistory.FindStringSubmatch(line)[1], ",")
 	return
@@ -112,7 +122,7 @@ func (s *Solution) extractHistory(line string) (err error) {
 
 func (s *Solution) extractMacroHistory(line string) (err error) {
 	if s.MacroHistory != nil {
-		return errors.New("attempting to overwriter s.MacroHistory")
+		return errors.New("overwriting solution macro history")
 	}
 	s.MacroHistory = strings.Split(reMacroHistory.FindStringSubmatch(line)[1], ",")
 	return
@@ -120,7 +130,10 @@ func (s *Solution) extractMacroHistory(line string) (err error) {
 
 func (s *Solution) extractMoves(line string) (err error) {
 	s.Moves, err = strconv.Atoi(reMoves.FindStringSubmatch(line)[1])
-	return err
+	if err != nil {
+		return fmt.Errorf("extracting moves: %v", err)
+	}
+	return nil
 }
 
 func (s *Solution) addDataFromPDL(line string) (err error) {
@@ -128,19 +141,19 @@ func (s *Solution) addDataFromPDL(line string) (err error) {
 
 	userID, err := strconv.Atoi(split[2])
 	if err != nil {
-		return err
+		return fmt.Errorf("extracting user id: %v", err)
 	}
 	if s.UserID != 0 && s.UserID != userID {
-		return errors.New("attempting to overwrite s.UserID")
+		return errors.New("overwriting user id")
 	}
 	s.UserID = userID
 
 	groupID, err := strconv.Atoi(split[3])
 	if err != nil {
-		return err
+		return fmt.Errorf("extracting group id: %v", err)
 	}
 	if s.GroupID != 0 && s.GroupID != groupID {
-		return errors.New("attempting to overwrite s.GroupID")
+		return errors.New("overwriting group id")
 	}
 	s.GroupID = groupID
 
@@ -167,7 +180,7 @@ func (s *Solution) addActions(actions []string) (err error) {
 		if len(items) == 2 && items[0] != "" {
 			count, err := strconv.Atoi(items[1])
 			if err != nil {
-				return err
+				return fmt.Errorf("parsing action: %v", err)
 			}
 			s.Actions[items[0]] += count
 		}

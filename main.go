@@ -1,12 +1,7 @@
 /*foldit extracts data from FoldIt solution files.
 
 Usage:
-	foldit -o=solution-data.json solution-filepaths.txt
-
-Args:
-	paths: A file containing paths to solution files. If a file is not provided,
-		paths are expected via stdin.
-	dest: Location of a sqlite database containing the extracted data.
+	foldit -o=data.json filepaths.txt
 */
 package main
 
@@ -37,6 +32,9 @@ func main() {
 	defer src.Close()
 	scanner := bufio.NewScanner(src)
 
+	// Load solutions
+	solutions, n := loadSolutions(scanner)
+
 	// Create the output file
 	var dst *os.File
 	if *output == "" {
@@ -50,13 +48,6 @@ func main() {
 	defer dst.Close()
 	encoder := json.NewEncoder(dst)
 
-	// Load solutions
-	solutions, n := loadSolutions(scanner)
-
-	for i := 0; i < n; i++ {
-		s := <-solutions
-		if err := encoder.Encode(s); err != nil {
-			log.Println(err)
-		}
-	}
+	// Write solution data
+	writeSolutions(solutions, n, encoder)
 }
