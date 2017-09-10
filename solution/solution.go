@@ -13,6 +13,7 @@ import (
 var (
 	reSID          = regexp.MustCompile(`^IRDATA SID (\d+)`)
 	rePID          = regexp.MustCompile(`^IRDATA PID (\d+)`)
+	reScore        = regexp.MustCompile(`^IRDATA SCORE (\d+\.?\d*)`)
 	reTimestamp    = regexp.MustCompile(`^IRDATA TIMESTAMP (\d+)`)
 	reHistory      = regexp.MustCompile(`^IRDATA HISTORY (.*)`)
 	reMacroHistory = regexp.MustCompile(`^IRDATA MACRO_HIST (.*)`)
@@ -55,6 +56,8 @@ func New(filename string) (s *Solution, err error) {
 			err = s.extractSolutionID(line)
 		case rePID.MatchString(line):
 			err = s.extractPuzzleID(line)
+		case reScore.MatchString(line):
+			err = s.extractScore(line)
 		case reTimestamp.MatchString(line):
 			err = s.extractTimestamp(line)
 		case rePDL.MatchString(line):
@@ -82,6 +85,11 @@ func (s *Solution) extractSolutionID(line string) (err error) {
 
 func (s *Solution) extractPuzzleID(line string) (err error) {
 	s.PuzzleID, err = strconv.Atoi(rePID.FindStringSubmatch(line)[1])
+	return err
+}
+
+func (s *Solution) extractScore(line string) (err error) {
+	s.Score, err = strconv.ParseFloat(reScore.FindStringSubmatch(line)[1], 64)
 	return err
 }
 
