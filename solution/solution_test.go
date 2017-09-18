@@ -2,7 +2,7 @@ package solution
 
 import "testing"
 
-var testSolution = "testdata/test_solution.pdb"
+var testSolution = "testdata/test_solution_1.pdb"
 
 func TestNewSolution(t *testing.T) {
 	s, err := New(testSolution)
@@ -11,6 +11,6 @@ func TestNewSolution(t *testing.T) {
 	}
 	expectedSolutionID := 372197993
 	if s.SolutionID != expectedSolutionID {
-		t.Errorf("Parsing s.SolutionID. Expected %v, got %v", expectedSolutionID, s.SolutionID)
+		t.Errorf("expected s.SolutionID == %v, got %v", expectedSolutionID, s.SolutionID)
 	}
 }

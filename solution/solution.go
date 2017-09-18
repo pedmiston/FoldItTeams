@@ -24,17 +24,19 @@ var (
 
 // A Solution is a collection of data extracted from a solution file.
 type Solution struct {
+	Filepath string
+	// IRDATA fields
 	SolutionID   int
 	PuzzleID     int
-	Timestamp    time.Time
-	UserID       int
-	GroupID      int
-	Actions      map[string]int
 	Score        float64
+	Timestamp    time.Time
 	History      []string
 	MacroHistory []string
-	Filepath     string
 	Moves        int
+	// PDL fields
+	UserID  int
+	GroupID int
+	Actions map[string]int
 }
 
 // New creates a new Solution from solution pdb file.
@@ -61,14 +63,14 @@ func New(filename string) (s *Solution, err error) {
 			err = s.extractScore(line)
 		case reTimestamp.MatchString(line):
 			err = s.extractTimestamp(line)
-		case rePDL.MatchString(line):
-			err = s.addDataFromPDL(line)
 		case reHistory.MatchString(line):
 			err = s.extractHistory(line)
 		case reMacroHistory.MatchString(line):
 			err = s.extractMacroHistory(line)
 		case reMoves.MatchString(line):
 			err = s.extractMoves(line)
+		case rePDL.MatchString(line):
+			err = s.addDataFromPDL(line)
 		}
 
 		if err != nil {

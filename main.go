@@ -32,9 +32,6 @@ func main() {
 	defer src.Close()
 	scanner := bufio.NewScanner(src)
 
-	// Load solutions
-	solutions, n := loadSolutions(scanner)
-
 	// Create the output file
 	var dst *os.File
 	if *output == "" {
@@ -48,6 +45,9 @@ func main() {
 	defer dst.Close()
 	encoder := json.NewEncoder(dst)
 
-	// Write solution data
+	// Load a channel of solutions from the input scanner
+	solutions, n := loadSolutions(scanner)
+
+	// Write solution data to the output encoder
 	writeSolutions(solutions, n, encoder)
 }
