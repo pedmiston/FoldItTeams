@@ -39,11 +39,11 @@ func writeSolutions(results chan result, n int, encoder *json.Encoder) {
 	for i := 0; i < n; i++ {
 		r := <-results
 		if r.err != nil {
-			fmt.Fprintf(os.Stderr, "%s,%v", r.s.Filepath, r.err)
+			fmt.Fprintf(os.Stderr, "%s,%v\n", r.s.Filepath, r.err)
 			continue
 		}
 		if err := encoder.Encode(r.s); err != nil {
-			fmt.Fprintf(os.Stderr, "%s,%v", r.s.Filepath, err)
+			fmt.Fprintf(os.Stderr, "%s,%v\n", r.s.Filepath, err)
 		}
 	}
 }
