@@ -34,3 +34,23 @@ func TestRead(t *testing.T) {
 		}
 	}
 }
+
+func TestReadMultipleUsers(t *testing.T) {
+	data, err := Read("testdata/multiple_users.pdb")
+	if err != nil {
+		t.Errorf("error reading 'testdata/multiple_users.pdb': %v", err)
+	}
+	pdls, ok := data["PDL"]
+	if !ok {
+		t.Fatal("IRDATA field 'PDL' not found")
+	}
+	if len(pdls) != 3 {
+		t.Fatalf("expected to pull 3 PDLs from 'testdata/multiple_users.pdb' but got %v", len(pdls))
+	}
+}
+
+func BenchmarkRead(b *testing.B) {
+	for n := 0; n < b.N; n++ {
+		Read("testdata/real_solution.pdb")
+	}
+}

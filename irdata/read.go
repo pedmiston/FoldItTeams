@@ -30,9 +30,7 @@ func Read(pdb string) (IRDATA, error) {
 		if reIRDATA.MatchString(line) {
 			matches := reIRDATA.FindStringSubmatch(line)
 			if len(matches) != 3 {
-				fmt.Fprintf(os.Stderr,
-					"error: irdata line doesn't contain expected data:\n\t%s",
-					line)
+				fmt.Fprintf(os.Stderr, "error: IRDATA line not properly matched:\n\t%s", line)
 				continue
 			}
 			key, line := matches[1], matches[2]
