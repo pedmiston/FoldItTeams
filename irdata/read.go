@@ -1,3 +1,4 @@
+//Package irdata extracts IRDATA fields from pdb solution files.
 package irdata
 
 import (
@@ -19,7 +20,7 @@ func Read(pdb string) (IRDATA, error) {
 
 	in, err = os.Open(pdb)
 	if err != nil {
-		return nil, fmt.Errorf("unable to open solution file: %v", err)
+		return nil, err
 	}
 	defer in.Close()
 
