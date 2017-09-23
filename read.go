@@ -40,7 +40,7 @@ func Read(pdb string) (IRDATA, error) {
 		if reIRDATA.MatchString(line) {
 			matches := reIRDATA.FindStringSubmatch(line)
 			if len(matches) != 3 {
-				fmt.Fprintf(os.Stderr, "%s,%s", pdb, line)
+				fmt.Fprintf(os.Stderr, "%s,error parsing line: '%s'\n", pdb, line)
 				continue
 			}
 			key, line := matches[1], matches[2]
