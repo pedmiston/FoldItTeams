@@ -1,7 +1,9 @@
 /*foldit extracts data from FoldIt solution files.
 
 Usage:
-	foldit -t=json -o=data.json filepaths.txt
+	foldit -t=json filepaths.txt > data.json
+	foldit -t=mysql data.json
+	foldit -t=json filepaths.txt | foldit -t=mysql
 */
 package main
 
@@ -13,7 +15,6 @@ import (
 
 func main() {
 	format := flag.String("t", "", "output type")
-	output := flag.String("o", "", "output file")
 	flag.Parse()
 
 	// Open the input file
@@ -30,22 +31,9 @@ func main() {
 	}
 	defer src.Close()
 
-	// Create the output file
-	var dst *os.File
-
-	if *output == "" {
-		dst = os.Stdout
-	} else {
-		dst, err = os.Create(*output)
-		if err != nil {
-			log.Fatal(err)
-		}
-	}
-	defer dst.Close()
-
 	switch *format {
 	case "json":
-		Write(src, dst)
+		Write(src, os.Stdout)
 	default:
 		panic("unknown output type")
 	}
