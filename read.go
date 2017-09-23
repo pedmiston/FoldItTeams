@@ -82,11 +82,11 @@ func Write(in io.Reader, dst io.Writer) {
 	for i := 0; i < n; i++ {
 		r := <-out
 		if r.Err != nil {
-			fmt.Fprintf(os.Stderr, "%s,%v\n", r.Data["Filepath"], r.Err)
+			fmt.Fprintf(os.Stderr, "%s,%v\n", r.Data["FILEPATH"], r.Err)
 			continue
 		}
 		if err := encoder.Encode(r.Data); err != nil {
-			fmt.Fprintf(os.Stderr, "%s,%v\n", r.Data["Filepath"], r.Err)
+			fmt.Fprintf(os.Stderr, "%s,%v\n", r.Data["FILEPATH"], r.Err)
 		}
 	}
 }
