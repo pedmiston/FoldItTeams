@@ -2,8 +2,6 @@
 
 Usage:
 	foldit -t=json filepaths.txt > data.json
-	foldit -t=mysql data.json
-	foldit -t=json filepaths.txt | foldit -t=mysql
 */
 package main
 

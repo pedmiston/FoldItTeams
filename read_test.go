@@ -41,6 +41,15 @@ func TestRead(t *testing.T) {
 	}
 }
 
+func TestReadStoresFilepath(t *testing.T) {
+	src := "testdata/small_solution.pdb"
+	data, _ := Read(src)
+	v, ok := data["FILEPATH"]
+	if !ok || v[0] != src {
+		t.Errorf("expected Read to store filepath as attribute")
+	}
+}
+
 func TestReadMultipleUsers(t *testing.T) {
 	data, err := Read("testdata/multiple_users.pdb")
 	if err != nil {

@@ -32,13 +32,15 @@ func Read(pdb string) (IRDATA, error) {
 	defer in.Close()
 
 	data := make(IRDATA)
+	data["FILEPATH"] = []string{pdb}
+
 	scanner := bufio.NewScanner(in)
 	for scanner.Scan() {
 		line := scanner.Text()
 		if reIRDATA.MatchString(line) {
 			matches := reIRDATA.FindStringSubmatch(line)
 			if len(matches) != 3 {
-				fmt.Fprintf(os.Stderr, "error: IRDATA line not properly matched:\n\t%s", line)
+				fmt.Fprintf(os.Stderr, "%s,%s", pdb, line)
 				continue
 			}
 			key, line := matches[1], matches[2]
