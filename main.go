@@ -1,27 +1,23 @@
 /*foldit extracts data from FoldIt solution files.
 
 Usage:
-	foldit -t=json filepaths.txt > data.json
+	foldit filepaths.txt > data.json
 */
 package main
 
 import (
-	"flag"
 	"log"
 	"os"
 )
 
 func main() {
-	format := flag.String("t", "", "output type")
-	flag.Parse()
-
 	// Open the input file
 	var src *os.File
 	var err error
-	if len(flag.Args()) == 0 {
+	if len(os.Args) == 1 {
 		src = os.Stdin
 	} else {
-		input := flag.Args()[0]
+		input := os.Args[1]
 		src, err = os.Open(input)
 		if err != nil {
 			log.Fatal(err)
@@ -29,10 +25,5 @@ func main() {
 	}
 	defer src.Close()
 
-	switch *format {
-	case "json":
-		Write(src, os.Stdout)
-	default:
-		panic("unknown output type")
-	}
+	Write(src, os.Stdout)
 }
