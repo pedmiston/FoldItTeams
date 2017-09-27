@@ -1,3 +1,3 @@
-# foldit
+# foldit-scraper
 
-A program for extracting data from FoldIt solution files.
+`foldit-scraper` scrapes IRDATA fields from FoldIt solution files.
