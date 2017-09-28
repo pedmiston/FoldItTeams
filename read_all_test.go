@@ -26,9 +26,9 @@ func TestReadAll(t *testing.T) {
 }
 
 func BenchmarkReadAll(b *testing.B) {
-	tmpDir, paths := replicate("testdata/small_solution.pdb", 10)
+	tmpDir, paths := replicate("testdata/small_solution.pdb", 100)
 	defer os.RemoveAll(tmpDir)
-	b.Run("N=10", func(b *testing.B) {
+	b.Run("N=100", func(b *testing.B) {
 		for n := 0; n < b.N; n++ {
 			ch, n := ReadAll(paths)
 			for i := 0; i < n; i++ {
